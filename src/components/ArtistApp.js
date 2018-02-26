@@ -64,7 +64,7 @@ removeArtist(key) {
           <Header websiteId={this.props.match.params.websiteId}/>
 
         </div>
-        <h3>Edit Artists</h3>
+        <h3>Artists</h3>
         <Artists
           addArtist={this.addArtist}
           params={this.props.match.params}

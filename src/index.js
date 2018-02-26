@@ -4,6 +4,9 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import App2 from './components/App2';
 import ArtistApp from './components/ArtistApp';
+import GigsApp from './components/GigsApp';
+
+
 
 
 import WebsiteCreator from './components/WebsiteCreator';
@@ -18,6 +21,8 @@ const Root = () => {
             <Route exact path="/" component={WebsiteCreator} />
             <Route exact path="/website/:websiteId/" component={App2} />
             <Route exact path="/website/:websiteId/artists"  component={ArtistApp} />
+            <Route exact path="/website/:websiteId/gigs"  component={GigsApp} />
+
 
 
 

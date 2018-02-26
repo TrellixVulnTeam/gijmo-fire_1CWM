@@ -39,8 +39,6 @@ class Artists extends React.Component {
   render() {
     return (
       <div>
-      <p>Passing through params app component to artists component: WebsiteID: {this.props.params.websiteId}</p>
-
       {Object.keys(this.props.artists).map(this.renderArtists)}
       <AddArtistForm addArtist={this.props.addArtist} params={this.props.params} />
       </div>
