@@ -65,6 +65,8 @@ removeArtist(key) {
 
         </div>
         <h3>Artists</h3>
+        <h3>Name | Type | Filename</h3>
+
         <Artists
           addArtist={this.addArtist}
           params={this.props.match.params}

@@ -1,5 +1,7 @@
 import React from 'react';
-import AddArtistForm from './ArtistAddForm'
+import AddArtistForm from './ArtistAddForm';
+import { slugify } from '../helper';
+
 
 class Artists extends React.Component {
   constructor() {
@@ -31,6 +33,8 @@ class Artists extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
+        <input type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" onChange={(e) => this.handleChange(e, key)}/>
+
         <button onClick={() => this.props.removeArtist(key)}>Remove Artist</button>
       </div>
     )
