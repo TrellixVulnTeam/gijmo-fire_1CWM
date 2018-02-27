@@ -34,6 +34,8 @@ class Gigs extends React.Component {
 
   renderGigs(key) {
     const gig = this.props.gigs[key];
+    const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
+    
     return (
       <div className="gig-edit" key={key}>
         <input type="text" name="gigName" value={gig.gigName} placeholder="Gig Name" onChange={(e) => this.handleChange(e, key)}/>
@@ -44,13 +46,13 @@ class Gigs extends React.Component {
           <option value="corporate">Corportate</option>
           <option value="productLaunch">Product Launch</option>
         </select>
-        <select type="text" name="gigArtistName" value={gig.gigArtistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
+        <select type="text" name="gigArtist" value={gig.gigArtist} placeholder="Artist" onChange={(e) => this.handleChange(e, key)}>
     {/*<select ref={(input) => this.artistName = input}>*/}
           {Object.keys(this.props.artists).map((key) => {
             return (
               <option
               key={key}
-              value={this.props.artists[key].artistName}>
+              value={key}>
               {this.props.artists[key].artistName}
               </option>
             )
@@ -62,7 +64,7 @@ class Gigs extends React.Component {
           <option value="theBeacon">The Beacon</option>
           <option value="Stubbs">Stubbs</option>
         </select>
-        <input type="text" name="gigContactType" value="Lookup Artist Type" placeholder="Artist Type" readOnly/>
+        <input type="text" name="gigContactType" value={gigArtistType} placeholder="Artist Type" readOnly/>
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>

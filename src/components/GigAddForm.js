@@ -14,7 +14,7 @@ class GigAddForm extends React.Component {
       gigType: this.gigType.value,
       gigFilename: slugify(this.gigName.value+"_"+this.gigType.value),
       gigWebsite: this.props.params.websiteId,
-      gigArtistName: this.artistName.value,
+      gigArtist: this.artist.value,
       gigVenue: this.gigVenue.value
 
     }
@@ -35,12 +35,12 @@ class GigAddForm extends React.Component {
           <option value="corporate">Corportate</option>
           <option value="productLaunch">Product Launch</option>
         </select>
-        <select ref={(input) => this.artistName = input}>
+        <select ref={(input) => this.artist = input}>
           {Object.keys(this.props.artists).map((key) => {
             return (
               <option
               key={key}
-              value={this.props.artists[key].artistName}>
+              value={key}>
               {this.props.artists[key].artistName}
               </option>
             )
