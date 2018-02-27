@@ -41,8 +41,8 @@ class Gigs extends React.Component {
   render() {
     return (
       <div>
-      {Object.keys(this.props.gigs).map(this.renderGigs)}
-      <GigAddForm addGig={this.props.addGig} params={this.props.params} />
+        {Object.keys(this.props.gigs).map(this.renderGigs)}
+        <GigAddForm addGig={this.props.addGig} params={this.props.params} />
       </div>
 
     )

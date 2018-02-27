@@ -3,19 +3,20 @@ import { slugify } from '../helper';
 
 
 class AddArtistForm extends React.Component {
-createArtist(event) {
-  event.preventDefault();
-  console.log('Entering Artist');
-  const artist = {
-    artistName: this.artistName.value,
-    artistType: this.artistType.value,
-    artistFilename: slugify(this.artistName.value+"_"+this.artistType.value),
-    artistWebsite: this.props.params.websiteId,
+  
+  createArtist(event) {
+    event.preventDefault();
+    console.log('Entering Artist');
+    const artist = {
+      artistName: this.artistName.value,
+      artistType: this.artistType.value,
+      artistFilename: slugify(this.artistName.value+"_"+this.artistType.value),
+      artistWebsite: this.props.params.websiteId,
+    }
+    console.log(artist)
+    this.props.addArtist(artist);
+    this.artistForm.reset();
   }
-  console.log(artist)
-  this.props.addArtist(artist);
-  this.artistForm.reset();
-}
   render() {
     return (
       <form ref={(input) => this.artistForm = input} className="artist-edit" onSubmit={(e) => this.createArtist(e)}>

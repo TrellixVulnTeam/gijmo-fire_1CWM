@@ -1,4 +1,3 @@
-
 import React from 'react';
 import $ from 'jquery';
 import Header from './Header';
@@ -19,15 +18,20 @@ class GigApp extends React.Component {
     // get initial state
     this.state = {
       gigs: {},
-      venues:{}
+      venues:{},
+      artists: {}
     };
   }
 
   componentWillMount() {
-    this.ref = base.syncState(`/website/${this.props.match.params.websiteId}/gigs`
-    , {
+    this.ref = base.syncState(`/website/${this.props.match.params.websiteId}/gigs`, {
       context: this,
       state: `gigs`
+    });
+
+    this.artistRef = base.syncState(`/website/${this.props.match.params.websiteId}/artists`, {
+      context: this,
+      state: 'artists'
     });
   }
 
@@ -51,18 +55,17 @@ class GigApp extends React.Component {
     this.setState({ gigs });
   }
 
-removeGig(key) {
-  const gigs = {...this.state.gigs};
-  gigs[key] = null;
-  this.setState({ gigs });
-}
+  removeGig(key) {
+    const gigs = {...this.state.gigs};
+    gigs[key] = null;
+    this.setState({ gigs });
+  }
 
   render() {
     return (
       <div className="tourgigs">
         <div className="header">
           <Header websiteId={this.props.match.params.websiteId}/>
-
         </div>
         <h3>Gigs</h3>
         <Gigs
@@ -71,6 +74,7 @@ removeGig(key) {
           gigs={this.state.gigs}
           updateGig={this.updateGig}
           removeGig={this.removeGig}
+          artists={this.state.artists}
         />
       </div>
     )
