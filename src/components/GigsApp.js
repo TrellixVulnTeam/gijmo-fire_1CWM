@@ -39,6 +39,7 @@ class GigApp extends React.Component {
     base.removeBinding(this.ref);
   }
 
+  // NOTE: all this does is ADD the gig to state. All the heavy lifting is done in subcomopnents
   addGig(gig) {
     //get a copy of the state
     const gigs = {...this.state.gigs};
