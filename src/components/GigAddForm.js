@@ -2,7 +2,9 @@ import React from 'react';
 import { slugify } from '../helper';
 
 
+
 class GigAddForm extends React.Component {
+  
   createGig(event) {
     event.preventDefault();
     console.log('Entering Gig');
@@ -11,12 +13,13 @@ class GigAddForm extends React.Component {
       gigType: this.gigType.value,
       gigFilename: slugify(this.gigName.value+"_"+this.gigType.value),
       gigWebsite: this.props.params.websiteId,
+      artistName: this.artistName.value
     }
     console.log(gig)
     this.props.addGig(gig);
     this.gigForm.reset();
   }
-  
+
   render() {
     return (
       <form ref={(input) => this.gigForm = input} className="gig-edit" onSubmit={(e) => this.createGig(e)}>
@@ -27,6 +30,18 @@ class GigAddForm extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
+        <select ref={(input) => this.artistName = input}>
+          {Object.keys(this.props.artists).map((key) => {
+            return (
+              <option 
+              key={key} 
+              value={this.props.artists[key].artistName}>
+              {this.props.artists[key].artistName}
+              </option>
+            )
+          })}
+        </select>
+
         <button type="submit">Submit</button>
       </form>
     )

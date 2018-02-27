@@ -8,6 +8,7 @@ class Gigs extends React.Component {
     super();
     this.renderGigs = this.renderGigs.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.artistArray = [];
   }
 
   handleChange(e, key) {
@@ -19,6 +20,14 @@ class Gigs extends React.Component {
       [e.target.name]: e.target.value
     }
     this.props.updateGig(key, updatedGig);
+  }
+
+  getArtistsArray() {
+    var arr = [];
+    const artists = this.props.artists;
+    Object.keys(artists).forEach((key, idx) => {
+      arr.push(artists[key].artistName)
+    });
   }
 
 
@@ -33,6 +42,9 @@ class Gigs extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
+        <select type="text" name="artistName" value={gig.artistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
+          <option value="artist"></option>
+        </select>
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>
     )
@@ -42,7 +54,10 @@ class Gigs extends React.Component {
     return (
       <div>
         {Object.keys(this.props.gigs).map(this.renderGigs)}
-        <GigAddForm addGig={this.props.addGig} params={this.props.params} />
+        <GigAddForm 
+          addGig={this.props.addGig}
+          params={this.props.params}
+          artists={this.props.artists} />
       </div>
 
     )
