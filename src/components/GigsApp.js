@@ -3,7 +3,6 @@ import $ from 'jquery';
 import Header from './Header';
 import Gigs from './Gigs';
 import Gig from './Gig';
-import Venues from './Venues';
 import base from '../base';
 
 
@@ -18,7 +17,6 @@ class GigApp extends React.Component {
     // get initial state
     this.state = {
       gigs: {},
-      venues:{},
       artists: {}
     };
   }

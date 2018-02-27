@@ -4,7 +4,6 @@ import $ from 'jquery';
 import Header from './Header';
 import Artists from './Artists';
 import Artist from './Artist';
-import Venues from './Venues';
 import base from '../base';
 
 
@@ -14,12 +13,10 @@ class ArtistApp extends React.Component {
     super();
     this.addArtist = this.addArtist.bind(this);
     this.updateArtist = this.updateArtist.bind(this);
-    this.addArtist = this.addArtist.bind(this);
     this.removeArtist = this.removeArtist.bind(this);
     // get initial state
     this.state = {
       artists: {},
-      venues:{}
     };
   }
 
@@ -51,19 +48,25 @@ class ArtistApp extends React.Component {
     this.setState({ artists });
   }
 
-removeArtist(key) {
-  const artists = {...this.state.artists};
-  artists[key] = null;
-  this.setState({ artists });
-}
+  removeArtist(key) {
+    const artists = {...this.state.artists};
+    artists[key] = null;
+    this.setState({ artists });
+  }
 
   render() {
     return (
       <div className="tourgigs">
         <div className="header">
           <Header websiteId={this.props.match.params.websiteId}/>
-
         </div>
+        <ul className="list-of-artists">
+          {
+            Object
+              .keys(this.state.artists)
+              .map(key => <Artist key={key} details={this.state.artists[key]} params={this.props.match.params} />)
+          }
+        </ul>
         <h3>Artists</h3>
         <h3>Name | Type | Filename</h3>
 
@@ -74,6 +77,7 @@ removeArtist(key) {
           updateArtist={this.updateArtist}
           removeArtist={this.removeArtist}
         />
+
       </div>
     )
   }

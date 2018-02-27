@@ -6,9 +6,6 @@ class Artist extends React.Component {
     return (
       <li className="artistComponent-artist">
         {details.artistName}
-        {details.artistType}
-        {details.artistHometown}
-        {details.artistFilename}
       </li>
     )
   }

@@ -44,7 +44,7 @@ class Gigs extends React.Component {
           <option value="corporate">Corportate</option>
           <option value="productLaunch">Product Launch</option>
         </select>
-        <select type="text" name="GigArtistName" value={gig.gigArtistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
+        <select type="text" name="gigArtistName" value={gig.gigArtistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
     {/*<select ref={(input) => this.artistName = input}>*/}
           {Object.keys(this.props.artists).map((key) => {
             return (

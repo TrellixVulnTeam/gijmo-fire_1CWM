@@ -7,7 +7,6 @@ class Gig extends React.Component {
       <li className="gigComponent-gig">
         {details.gigName}
         {details.gigType}
-        {details.gigHometown}
         {details.gigFilename}
       </li>
     )
