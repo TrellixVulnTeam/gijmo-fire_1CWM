@@ -43,8 +43,17 @@ class Gigs extends React.Component {
           <option value="employee">Employee</option>
         </select>
         <select type="text" name="artistName" value={gig.artistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
-          <option value="artist"></option>
-        </select>
+    {/*<select ref={(input) => this.artistName = input}>*/}
+          {Object.keys(this.props.artists).map((key) => {
+            return (
+              <option 
+              key={key} 
+              value={this.props.artists[key].artistName}>
+              {this.props.artists[key].artistName}
+              </option>
+            )
+          })}
+        </select>  
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>
     )
