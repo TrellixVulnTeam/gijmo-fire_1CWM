@@ -69,6 +69,7 @@ class GigApp extends React.Component {
           <Header websiteId={this.props.match.params.websiteId}/>
         </div>
         <h3>Gigs</h3>
+        <h4>Identifyer | gigDate | Type | Artist-Reference | Venue | ArtistType-Lookup </h4>
         <Gigs
           addGig={this.addGig}
           params={this.props.match.params}

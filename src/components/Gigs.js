@@ -23,6 +23,7 @@ class Gigs extends React.Component {
   }
 
   getArtistsArray() {
+    //we also need to get the artistId or key?
     var arr = [];
     const artists = this.props.artists;
     Object.keys(artists).forEach((key, idx) => {
@@ -36,24 +37,33 @@ class Gigs extends React.Component {
     return (
       <div className="gig-edit" key={key}>
         <input type="text" name="gigName" value={gig.gigName} placeholder="Gig Name" onChange={(e) => this.handleChange(e, key)}/>
+        <input type="text" name="gigDate" value={gig.gigDate} placeholder="Gig Date" onChange={(e) => this.handleChange(e, key)}/>
         <select type="text" name="gigType" value={gig.gigType} placeholder="Gig Type" onChange={(e) => this.handleChange(e, key)}>
-          <option value="gig">Gig</option>
-          <option value="brand">Brand</option>
-          <option value="person">Person</option>
-          <option value="employee">Employee</option>
+          <option value="concert">Concert</option>
+          <option value="conference">Conference</option>
+          <option value="corporate">Corportate</option>
+          <option value="productLaunch">Product Launch</option>
         </select>
-        <select type="text" name="artistName" value={gig.artistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
+        <select type="text" name="GigArtistName" value={gig.gigArtistName} placeholder="Artist Name" onChange={(e) => this.handleChange(e, key)}>
     {/*<select ref={(input) => this.artistName = input}>*/}
           {Object.keys(this.props.artists).map((key) => {
             return (
-              <option 
-              key={key} 
+              <option
+              key={key}
               value={this.props.artists[key].artistName}>
               {this.props.artists[key].artistName}
               </option>
             )
           })}
-        </select>  
+        </select>
+        <select type="text" name="gigVenue" value={gig.gigVenue} placeholder="Gig Venue" onChange={(e) => this.handleChange(e, key)}>
+          <option value="redRocks">Red Rocks</option>
+          <option value="theFox">The Fox</option>
+          <option value="theBeacon">The Beacon</option>
+          <option value="Stubbs">Stubbs</option>
+        </select>
+        <input type="text" name="gigContactType" value="Lookup Artist Type" placeholder="Artist Type" readOnly/>
+
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>
     )
@@ -63,7 +73,7 @@ class Gigs extends React.Component {
     return (
       <div>
         {Object.keys(this.props.gigs).map(this.renderGigs)}
-        <GigAddForm 
+        <GigAddForm
           addGig={this.props.addGig}
           params={this.props.params}
           artists={this.props.artists} />
