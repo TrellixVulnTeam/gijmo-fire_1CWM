@@ -35,7 +35,7 @@ class Gigs extends React.Component {
   renderGigs(key) {
     const gig = this.props.gigs[key];
     const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
-    
+
     return (
       <div className="gig-edit" key={key}>
         <input type="text" name="gigName" value={gig.gigName} placeholder="Gig Name" onChange={(e) => this.handleChange(e, key)}/>

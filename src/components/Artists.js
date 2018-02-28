@@ -17,21 +17,11 @@ class Artists extends React.Component {
     const updatedArtist = {
       ...artist,
       //name is not artistName. it is its own value
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
+      artistFilename: artist.artistName
     }
     this.props.updateArtist(key, updatedArtist);
-    
-    //if the artist name is the input changed, then trigger a manual change event on artistFilename
-    if(e.target.name == 'artistName'){
-	    let event = new Event('input', { bubbles: true });
-	    //event.simulated = true;
-		this[`artistFilename${key}`].dispatchEvent(event); //still not triggering an update on the firebase data
-	    //console.log(e.target.name+' triggered change for filename field '+ this[`artistFilename${key}`].value);
-    }
-    
-    
   }
-
 
   
   renderArtists(key) {
@@ -46,7 +36,7 @@ class Artists extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
-        <input ref={input => {this[`artistFilename${key}`] = input;}} type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" onChange={(e) => this.handleChange(e, key)}/>
+        <input type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" onChange={(e) => this.handleChange(e, key)}/>
 
         <button onClick={() => this.props.removeArtist(key)}>Remove Artist</button>
       </div>
