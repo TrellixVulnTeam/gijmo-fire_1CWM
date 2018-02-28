@@ -21,6 +21,15 @@ class Artists extends React.Component {
       artistFilename: artist.artistName
     }
     this.props.updateArtist(key, updatedArtist);
+   
+    this.setState({
+      text: e.target.value
+    }, () => {
+      console.log("This is working in state", this.state.text);
+    });
+
+    
+
   }
 
   
@@ -36,7 +45,7 @@ class Artists extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
-        <input type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" onChange={(e) => this.handleChange(e, key)}/>
+        <input type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" readOnly/>
 
         <button onClick={() => this.props.removeArtist(key)}>Remove Artist</button>
       </div>
