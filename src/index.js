@@ -22,10 +22,6 @@ const Root = () => {
             <Route exact path="/website/:websiteId/" component={App2} />
             <Route exact path="/website/:websiteId/artists"  component={ArtistApp} />
             <Route exact path="/website/:websiteId/gigs"  component={GigsApp} />
-
-
-
-
             <Route component={NotFound} />
           </Switch>
       </div>

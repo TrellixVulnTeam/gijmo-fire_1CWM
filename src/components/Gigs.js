@@ -1,6 +1,8 @@
 import React from 'react';
 import GigAddForm from './GigAddForm'
 import Artists from './Artists';
+import { slugify } from '../helper';
+
 
 
 class Gigs extends React.Component {
@@ -12,15 +14,31 @@ class Gigs extends React.Component {
   }
 
   handleChange(e, key) {
+    //name is not artistName. it is its own value
+    const name = e.target.name;
+    const value = e.target.value;
     const gig = this.props.gigs[key];
-    // take a copy of the gig and update it with the new data
-    const updatedGig = {
-      ...gig,
-      //name is not gigName. it is its own value
-      [e.target.name]: e.target.value
-    }
-    this.props.updateGig(key, updatedGig);
+    const fileNameObject = {}
+    if (name == 'gigName') {
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+gig.gigArtistName+"_"+slugify(value);
+    };
+    if (name == 'gigDate') {
+      fileNameObject['gigFilename'] = value+"_"+gig.gigArtistName+"_"+slugify(gig.gigName);
+    };
+    if (name == 'gigArtist') {
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+value+"_"+slugify(gig.gigName);
+    };
+    this.setState({text: value,}, () => {
+      const gig = this.props.gigs[key];
+      const updatedGig = {
+        ...gig,
+        ...fileNameObject,
+        [name]: value
+      }
+      this.props.updateGig(key, updatedGig);
+    });
   }
+
 
   getArtistsArray() {
     //we also need to get the artistId or key?
@@ -39,6 +57,7 @@ class Gigs extends React.Component {
     return (
       <div className="gig-edit" key={key}>
         <input type="text" name="gigName" value={gig.gigName} placeholder="Gig Name" onChange={(e) => this.handleChange(e, key)}/>
+
         <input type="text" name="gigDate" value={gig.gigDate} placeholder="Gig Date" onChange={(e) => this.handleChange(e, key)}/>
         <select type="text" name="gigType" value={gig.gigType} placeholder="Gig Type" onChange={(e) => this.handleChange(e, key)}>
           <option value="concert">Concert</option>
@@ -64,6 +83,7 @@ class Gigs extends React.Component {
           <option value="theBeacon">The Beacon</option>
           <option value="Stubbs">Stubbs</option>
         </select>
+        <input type="text" name="gigFilename" value={gig.gigFilename} placeholder="Gig Filename" readOnly/>
         <input type="text" name="gigContactType" value={gigArtistType} placeholder="Artist Type" readOnly/>
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
