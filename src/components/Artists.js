@@ -2,6 +2,8 @@ import React from 'react';
 import AddArtistForm from './ArtistAddForm';
 import { slugify } from '../helper';
 import $ from 'jquery';
+import base from '../base';
+
 
 
 class Artists extends React.Component {
@@ -12,25 +14,32 @@ class Artists extends React.Component {
   }
 
   handleChange(e, key) {
-    const artist = this.props.artists[key];
-    // take a copy of the artist and update it with the new data
-    const updatedArtist = {
-      ...artist,
-      //name is not artistName. it is its own value
-      [e.target.name]: e.target.value,
-      artistFilename: artist.artistName
-    }
-    this.props.updateArtist(key, updatedArtist);
-   
+    const name = e.target.name;
+    const value = e.target.value;
     this.setState({
-      text: e.target.value
-    }, () => {
+        text: value,
+      }, () => {
+
+        const artist = this.props.artists[key];
+        // take a copy of the artist and update it with the new data
+        const updatedArtist = {
+          ...artist,
+          //name is not artistName. it is its own value
+          [name]: value,
+          artistFilename: slugify(value)
+
+        }
+    this.props.updateArtist(key, updatedArtist);
+
+
       console.log("This is working in state", this.state.text);
-    });
+      console.log("filename", artist.artistFilename);
+      }
+    );
 
     
-
   }
+
 
   
   renderArtists(key) {
@@ -45,7 +54,7 @@ class Artists extends React.Component {
           <option value="person">Person</option>
           <option value="employee">Employee</option>
         </select>
-        <input type="text" name="artistFilename" value={slugify(artist.artistName)} placeholder="Artist Filename" readOnly/>
+        <input type="text" name="artistFilename" value={artist.artistFilename} placeholder="Artist Filename" readOnly/>
 
         <button onClick={() => this.props.removeArtist(key)}>Remove Artist</button>
       </div>
