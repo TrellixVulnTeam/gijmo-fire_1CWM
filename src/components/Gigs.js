@@ -18,16 +18,21 @@ class Gigs extends React.Component {
     const name = e.target.name;
     const value = e.target.value;
     const gig = this.props.gigs[key];
+    const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
+
     const fileNameObject = {}
     if (name == 'gigName') {
-      fileNameObject['gigFilename'] = gig.gigDate+"_"+gig.gigArtistName+"_"+slugify(value);
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(value);
     };
     if (name == 'gigDate') {
-      fileNameObject['gigFilename'] = value+"_"+gig.gigArtistName+"_"+slugify(gig.gigName);
+      fileNameObject['gigFilename'] = value+"_"+gigArtistName+"_"+slugify(gig.gigName);
     };
+
+    //this one doesnt work becausegig ArtistName returns the old version of gigArtistName before it was changed. We  want the value of what was picked but the value is not Artist Name ('ex Pink Floyd), it is the key of the Artist (ex artist-12345)
     if (name == 'gigArtist') {
-      fileNameObject['gigFilename'] = gig.gigDate+"_"+value+"_"+slugify(gig.gigName);
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+gigArtistName+"_"+slugify(gig.gigName);
     };
+
     this.setState({text: value,}, () => {
       const gig = this.props.gigs[key];
       const updatedGig = {
@@ -53,6 +58,8 @@ class Gigs extends React.Component {
   renderGigs(key) {
     const gig = this.props.gigs[key];
     const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
+    const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
+
 
     return (
       <div className="gig-edit" key={key}>
@@ -66,7 +73,6 @@ class Gigs extends React.Component {
           <option value="productLaunch">Product Launch</option>
         </select>
         <select type="text" name="gigArtist" value={gig.gigArtist} placeholder="Artist" onChange={(e) => this.handleChange(e, key)}>
-    {/*<select ref={(input) => this.artistName = input}>*/}
           {Object.keys(this.props.artists).map((key) => {
             return (
               <option
@@ -85,6 +91,8 @@ class Gigs extends React.Component {
         </select>
         <input type="text" name="gigFilename" value={gig.gigFilename} placeholder="Gig Filename" readOnly/>
         <input type="text" name="gigContactType" value={gigArtistType} placeholder="Artist Type" readOnly/>
+        <input type="text" name="gigContactName" value={gigArtistName} placeholder="Artist Name" readOnly/>
+
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>

@@ -13,12 +13,12 @@ class Artists extends React.Component {
   }
 
   handleChange(e, key) {
-    //name is not artistName. it is its own value
     const name = e.target.name;
     const value = e.target.value;
     const fileNameObject = {}
     if (name == 'artistName') {
       fileNameObject['artistFilename'] = slugify(value);
+      //also update gig.gigArtistName, gig.gigFilename (which contains artist.artistName). The artistName currently changes in the field on the gigs page but it is not saving to the state or Firebase within Gigs.
     }
     this.setState({text: value,}, () => {
       const artist = this.props.artists[key];
