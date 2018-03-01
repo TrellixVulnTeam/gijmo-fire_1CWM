@@ -5,7 +5,7 @@ import $ from 'jquery';
 import base from '../base';
 
 class Artists extends React.Component {
-  
+
   constructor() {
     super();
     this.renderArtists = this.renderArtists.bind(this);
@@ -16,19 +16,23 @@ class Artists extends React.Component {
     //name is not artistName. it is its own value
     const name = e.target.name;
     const value = e.target.value;
+    const fileNameObject = {}
+    if (name == 'artistName') {
+      fileNameObject['artistFilename'] = slugify(value);
+    }
     this.setState({text: value,}, () => {
       const artist = this.props.artists[key];
       const updatedArtist = {
         ...artist,
-        [name]: value,
-        artistFilename: slugify(value)
+        ...fileNameObject,
+        [name]: value
       }
       this.props.updateArtist(key, updatedArtist);
     });
   }
 
   renderArtists(key) {
-	
+
     const artist = this.props.artists[key];
     return (
       <div className="artist-edit" key={key} data-key={key}>
