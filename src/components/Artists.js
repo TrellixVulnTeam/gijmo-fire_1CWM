@@ -4,9 +4,8 @@ import { slugify } from '../helper';
 import $ from 'jquery';
 import base from '../base';
 
-
-
 class Artists extends React.Component {
+  
   constructor() {
     super();
     this.renderArtists = this.renderArtists.bind(this);
@@ -14,34 +13,20 @@ class Artists extends React.Component {
   }
 
   handleChange(e, key) {
+    //name is not artistName. it is its own value
     const name = e.target.name;
     const value = e.target.value;
-    this.setState({
-        text: value,
-      }, () => {
-
-        const artist = this.props.artists[key];
-        // take a copy of the artist and update it with the new data
-        const updatedArtist = {
-          ...artist,
-          //name is not artistName. it is its own value
-          [name]: value,
-          artistFilename: slugify(value)
-
-        }
-    this.props.updateArtist(key, updatedArtist);
-
-
-      console.log("This is working in state", this.state.text);
-      console.log("filename", artist.artistFilename);
+    this.setState({text: value,}, () => {
+      const artist = this.props.artists[key];
+      const updatedArtist = {
+        ...artist,
+        [name]: value,
+        artistFilename: slugify(value)
       }
-    );
-
-    
+      this.props.updateArtist(key, updatedArtist);
+    });
   }
 
-
-  
   renderArtists(key) {
 	
     const artist = this.props.artists[key];
@@ -55,7 +40,6 @@ class Artists extends React.Component {
           <option value="employee">Employee</option>
         </select>
         <input type="text" name="artistFilename" value={artist.artistFilename} placeholder="Artist Filename" readOnly/>
-
         <button onClick={() => this.props.removeArtist(key)}>Remove Artist</button>
       </div>
     )
@@ -67,7 +51,6 @@ class Artists extends React.Component {
       {Object.keys(this.props.artists).map(this.renderArtists)}
       <AddArtistForm addArtist={this.props.addArtist} params={this.props.params} />
       </div>
-
     )
   }
 }
