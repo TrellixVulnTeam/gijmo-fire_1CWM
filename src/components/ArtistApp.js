@@ -1,11 +1,10 @@
-
 import React from 'react';
 import $ from 'jquery';
 import Header from './Header';
 import Artists from './Artists';
 import Artist from './Artist';
 import base from '../base';
-
+import { slugify } from '../helper';
 
 class ArtistApp extends React.Component {
 
@@ -14,6 +13,8 @@ class ArtistApp extends React.Component {
     this.addArtist = this.addArtist.bind(this);
     this.updateArtist = this.updateArtist.bind(this);
     this.removeArtist = this.removeArtist.bind(this);
+    this.ifArtistNameChanged = this.ifArtistNameChanged.bind(this);
+    this.updateGigsOnArtistNameChange = this.updateGigsOnArtistNameChange.bind(this);
     // get initial state
     this.state = {
       artists: {},
@@ -21,10 +22,13 @@ class ArtistApp extends React.Component {
   }
 
   componentWillMount() {
-    this.ref = base.syncState(`/website/${this.props.match.params.websiteId}/artists`
-    , {
+    this.ref = base.syncState(`/website/${this.props.match.params.websiteId}/artists`, {
       context: this,
       state: `artists`
+    });
+    this.gigsRef = base.syncState(`/website/${this.props.match.params.websiteId}/gigs`, {
+      context: this,
+      state: `gigs`
     });
   }
 
@@ -41,11 +45,35 @@ class ArtistApp extends React.Component {
     //set state
     this.setState({ artists: artists })
   }
+  ifArtistNameChanged(key, old_state, updateArtist) {
+    return (old_state[key].artistName != updateArtist.artistName);
+  }
+  updateGigsOnArtistNameChange(key, old_state, updateArtist) {
+    if (this.ifArtistNameChanged(key, old_state, updateArtist)) {
+      const updated_gigs = {};
+      const { gigs = {} } = this.state;
 
+      Object.keys(gigs).map(gig_key => {
+        const old_gig = gigs[gig_key];
+        if (old_gig.gigArtist == key) {
+          updated_gigs[gig_key] = {
+            ...old_gig,
+            gigFilename: old_gig.gigDate + '_' + slugify(updateArtist.artistName) + '_' + slugify(old_gig.gigName)
+          }
+        } else {
+          updated_gigs[gig_key] = gigs[gig_key]
+        }
+      })
+      this.setState({ gigs: updated_gigs });
+    }
+  }
   updateArtist(key, updatedArtist) {
     const artists = {...this.state.artists};
     artists[key] = updatedArtist;
-    this.setState({ artists });
+    const old_state = this.state.artists;
+    this.setState({ artists }, () => {
+      this.updateGigsOnArtistNameChange(key, old_state, updatedArtist);
+    });
   }
 
   removeArtist(key) {
