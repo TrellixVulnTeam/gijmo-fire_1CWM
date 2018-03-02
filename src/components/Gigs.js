@@ -18,20 +18,23 @@ class Gigs extends React.Component {
     const name = e.target.name;
     const value = e.target.value;
     const gig = this.props.gigs[key];
-    const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
-
+    let gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
     const fileNameObject = {}
+
+    if (name == 'gigArtist') {
+      gigArtistName = this.props.artists[value].artistName;
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
+    }
+
     if (name == 'gigName') {
       fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(value);
-    };
+    }
+
     if (name == 'gigDate') {
-      fileNameObject['gigFilename'] = value+"_"+gigArtistName+"_"+slugify(gig.gigName);
+      fileNameObject['gigFilename'] = value+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
     };
 
-    //this one doesnt work becausegig ArtistName returns the old version of gigArtistName before it was changed. We  want the value of what was picked but the value is not Artist Name ('ex Pink Floyd), it is the key of the Artist (ex artist-12345)
-    if (name == 'gigArtist') {
-      fileNameObject['gigFilename'] = gig.gigDate+"_"+gigArtistName+"_"+slugify(gig.gigName);
-    };
+    // this one doesnt work becausegig ArtistName returns the old version of gigArtistName before it was changed. We  want the value of what was picked but the value is not Artist Name ('ex Pink Floyd), it is the key of the Artist (ex artist-12345)
 
     this.setState({text: value,}, () => {
       const gig = this.props.gigs[key];
@@ -59,7 +62,6 @@ class Gigs extends React.Component {
     const gig = this.props.gigs[key];
     const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
     const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
-
 
     return (
       <div className="gig-edit" key={key}>

@@ -8,17 +8,17 @@ class GigAddForm extends React.Component {
   createGig(event) {
     event.preventDefault();
     console.log('Entering Gig');
+    const artistName = this.props.artists[this.artist.value].artistName;
     const gig = {
       gigName: this.gigName.value,
       gigDate: this.gigDate.value,
       gigType: this.gigType.value,
-      gigFilename: slugify(this.gigName.value+"_"+this.gigType.value),
+      gigFilename: this.gigDate.value + "_" + slugify(artistName)+ "_" + this.gigName.value,
       gigWebsite: this.props.params.websiteId,
       gigArtist: this.artist.value,
       gigVenue: this.gigVenue.value
 
     }
-    console.log(gig)
     this.props.addGig(gig);
     this.gigForm.reset();
   }
