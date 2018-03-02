@@ -58,7 +58,9 @@ class ArtistApp extends React.Component {
         if (old_gig.gigArtist == key) {
           updated_gigs[gig_key] = {
             ...old_gig,
-            gigFilename: old_gig.gigDate + '_' + slugify(updateArtist.artistName) + '_' + slugify(old_gig.gigName)
+            gigFilename: old_gig.gigDate + '_' + slugify(updateArtist.artistName) + '_' + slugify(old_gig.gigName),
+            gigArtistName: updateArtist.artistName
+
           }
         } else {
           updated_gigs[gig_key] = gigs[gig_key]

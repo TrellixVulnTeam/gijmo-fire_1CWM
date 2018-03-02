@@ -24,6 +24,7 @@ class Gigs extends React.Component {
     if (name == 'gigArtist') {
       gigArtistName = this.props.artists[value].artistName;
       fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
+      fileNameObject['gigArtistName'] = gigArtistName;
     }
 
     if (name == 'gigName') {
@@ -34,7 +35,6 @@ class Gigs extends React.Component {
       fileNameObject['gigFilename'] = value+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
     };
 
-    // this one doesnt work becausegig ArtistName returns the old version of gigArtistName before it was changed. We  want the value of what was picked but the value is not Artist Name ('ex Pink Floyd), it is the key of the Artist (ex artist-12345)
 
     this.setState({text: value,}, () => {
       const gig = this.props.gigs[key];
@@ -49,7 +49,6 @@ class Gigs extends React.Component {
 
 
   getArtistsArray() {
-    //we also need to get the artistId or key?
     var arr = [];
     const artists = this.props.artists;
     Object.keys(artists).forEach((key, idx) => {
