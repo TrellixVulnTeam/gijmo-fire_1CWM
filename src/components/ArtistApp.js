@@ -69,12 +69,40 @@ class ArtistApp extends React.Component {
       this.setState({ gigs: updated_gigs });
     }
   }
+
+  ifArtistTypeChanged(key, old_state, updateArtist) {
+    return (old_state[key].artistType != updateArtist.artistType);
+  }
+  updateGigsOnArtistTypeChange(key, old_state, updateArtist) {
+    if (this.ifArtistTypeChanged(key, old_state, updateArtist)) {
+      const updated_gigs = {};
+      const { gigs = {} } = this.state;
+
+      Object.keys(gigs).map(gig_key => {
+        const old_gig = gigs[gig_key];
+        if (old_gig.gigArtist == key) {
+          updated_gigs[gig_key] = {
+            ...old_gig,
+            gigArtistType: updateArtist.artistType
+
+          }
+        } else {
+          updated_gigs[gig_key] = gigs[gig_key]
+        }
+      })
+      this.setState({ gigs: updated_gigs });
+    }
+  }
+
+
   updateArtist(key, updatedArtist) {
     const artists = {...this.state.artists};
     artists[key] = updatedArtist;
     const old_state = this.state.artists;
     this.setState({ artists }, () => {
       this.updateGigsOnArtistNameChange(key, old_state, updatedArtist);
+      this.updateGigsOnArtistTypeChange(key, old_state, updatedArtist);
+
     });
   }
 
