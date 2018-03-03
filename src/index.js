@@ -1,15 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-
-import App2 from './components/App2';
+import App from './components/App';
 import ArtistApp from './components/ArtistApp';
 import GigsApp from './components/GigsApp';
 import VenuesApp from './components/VenuesApp';
-
-
-
-
 
 import WebsiteCreator from './components/WebsiteCreator';
 
@@ -21,11 +16,10 @@ const Root = () => {
       <div>
           <Switch>
             <Route exact path="/" component={WebsiteCreator} />
-            <Route exact path="/website/:websiteId/" component={App2} />
+            <Route exact path="/website/:websiteId/" component={App} />
             <Route exact path="/website/:websiteId/artists"  component={ArtistApp} />
             <Route exact path="/website/:websiteId/gigs"  component={GigsApp} />
             <Route exact path="/website/:websiteId/venues"  component={VenuesApp} />
-
             <Route component={NotFound} />
           </Switch>
       </div>

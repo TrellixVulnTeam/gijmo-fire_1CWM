@@ -1,8 +1,6 @@
 import React from 'react';
 import GigAddForm from './GigAddForm'
-import Artists from './Artists';
 import Venues from './Venues';
-
 import { slugify } from '../helper';
 
 
@@ -28,7 +26,6 @@ class Gigs extends React.Component {
     if (name == 'gigArtist') {
       gigArtistName = this.props.artists[value].artistName;
       fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
-      fileNameObject['gigArtistName'] = gigArtistName;
     }
 
     if (name == 'gigName') {
@@ -75,6 +72,10 @@ class Gigs extends React.Component {
     const gig = this.props.gigs[key];
     const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
     const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
+    const gigVenueCityState = (this.props.venues[gig.gigVenue] ? this.props.venues[gig.gigVenue].venueCityState : '');
+
+
+
 
     return (
       <div className="gig-edit" key={key}>
@@ -112,9 +113,9 @@ class Gigs extends React.Component {
         </select>
 
         <input type="text" name="gigFilename" value={gig.gigFilename} placeholder="Gig Filename" readOnly/>
-        <input type="text" name="gigContactType" value={gigArtistType} placeholder="Artist Type" readOnly/>
-        <input type="text" name="gigContactName" value={gigArtistName} placeholder="Artist Name" readOnly/>
-
+        <input type="text" name="gigArtistType" value={gigArtistType} placeholder="Artist Type" readOnly/>
+        <input type="text" name="gigArtistName" value={gigArtistName} placeholder="Artist Name" readOnly/>
+        <input type="text" name="gigVenueCityState" value={gigVenueCityState} placeholder="Venue City State" readOnly/>
 
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>

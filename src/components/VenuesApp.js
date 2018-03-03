@@ -1,10 +1,8 @@
 import React from 'react';
-import $ from 'jquery';
 import Header from './Header';
 import Venues from './Venues';
 import Venue from './Venue';
 import base from '../base';
-import { slugify } from '../helper';
 
 class VenueApp extends React.Component {
 
@@ -13,9 +11,6 @@ class VenueApp extends React.Component {
     this.addVenue = this.addVenue.bind(this);
     this.updateVenue = this.updateVenue.bind(this);
     this.removeVenue = this.removeVenue.bind(this);
-    this.ifVenueNameChanged = this.ifVenueNameChanged.bind(this);
-    this.updateGigsOnVenueNameChange = this.updateGigsOnVenueNameChange.bind(this);
-    // get initial state
     this.state = {
       venues: {},
     };
@@ -45,61 +40,11 @@ class VenueApp extends React.Component {
     //set state
     this.setState({ venues: venues })
   }
-  ifVenueNameChanged(key, old_state, updateVenue) {
-    return (old_state[key].venueName != updateVenue.venueName);
-  }
-  updateGigsOnVenueNameChange(key, old_state, updateVenue) {
-    if (this.ifVenueNameChanged(key, old_state, updateVenue)) {
-      const updated_gigs = {};
-      const { gigs = {} } = this.state;
-
-      Object.keys(gigs).map(gig_key => {
-        const old_gig = gigs[gig_key];
-        if (old_gig.gigVenue == key) {
-          updated_gigs[gig_key] = {
-            ...old_gig,
-            gigVenueName: updateVenue.venueName
-
-          }
-        } else {
-          updated_gigs[gig_key] = gigs[gig_key]
-        }
-      })
-      this.setState({ gigs: updated_gigs });
-    }
-  }
-
-  ifVenueTypeChanged(key, old_state, updateVenue) {
-    return (old_state[key].venueType != updateVenue.venueType);
-  }
-  updateGigsOnVenueTypeChange(key, old_state, updateVenue) {
-    if (this.ifVenueTypeChanged(key, old_state, updateVenue)) {
-      const updated_gigs = {};
-      const { gigs = {} } = this.state;
-
-      Object.keys(gigs).map(gig_key => {
-        const old_gig = gigs[gig_key];
-        if (old_gig.gigVenue == key) {
-          updated_gigs[gig_key] = {
-            ...old_gig,
-            gigVenueType: updateVenue.venueType
-
-          }
-        } else {
-          updated_gigs[gig_key] = gigs[gig_key]
-        }
-      })
-      this.setState({ gigs: updated_gigs });
-    }
-  }
-
 
   updateVenue(key, updatedVenue) {
     const venues = {...this.state.venues};
     venues[key] = updatedVenue;
-    const old_state = this.state.venues;
     this.setState({ venues }, () => {
-      this.updateGigsOnVenueNameChange(key, old_state, updatedVenue);
     });
   }
 

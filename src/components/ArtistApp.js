@@ -1,5 +1,4 @@
 import React from 'react';
-import $ from 'jquery';
 import Header from './Header';
 import Artists from './Artists';
 import Artist from './Artist';
@@ -58,9 +57,7 @@ class ArtistApp extends React.Component {
         if (old_gig.gigArtist == key) {
           updated_gigs[gig_key] = {
             ...old_gig,
-            gigFilename: old_gig.gigDate + '_' + slugify(updateArtist.artistName) + '_' + slugify(old_gig.gigName),
-            gigArtistName: updateArtist.artistName
-
+            gigFilename: old_gig.gigDate + '_' + slugify(updateArtist.artistName) + '_' + slugify(old_gig.gigName)
           }
         } else {
           updated_gigs[gig_key] = gigs[gig_key]
@@ -69,31 +66,6 @@ class ArtistApp extends React.Component {
       this.setState({ gigs: updated_gigs });
     }
   }
-
-  ifArtistTypeChanged(key, old_state, updateArtist) {
-    return (old_state[key].artistType != updateArtist.artistType);
-  }
-  updateGigsOnArtistTypeChange(key, old_state, updateArtist) {
-    if (this.ifArtistTypeChanged(key, old_state, updateArtist)) {
-      const updated_gigs = {};
-      const { gigs = {} } = this.state;
-
-      Object.keys(gigs).map(gig_key => {
-        const old_gig = gigs[gig_key];
-        if (old_gig.gigArtist == key) {
-          updated_gigs[gig_key] = {
-            ...old_gig,
-            gigArtistType: updateArtist.artistType
-
-          }
-        } else {
-          updated_gigs[gig_key] = gigs[gig_key]
-        }
-      })
-      this.setState({ gigs: updated_gigs });
-    }
-  }
-
 
   updateArtist(key, updatedArtist) {
     const artists = {...this.state.artists};
@@ -101,8 +73,6 @@ class ArtistApp extends React.Component {
     const old_state = this.state.artists;
     this.setState({ artists }, () => {
       this.updateGigsOnArtistNameChange(key, old_state, updatedArtist);
-      this.updateGigsOnArtistTypeChange(key, old_state, updatedArtist);
-
     });
   }
 

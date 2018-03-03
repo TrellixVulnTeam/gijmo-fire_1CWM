@@ -1,5 +1,4 @@
 import React from 'react';
-import Artists from './Artists';
 
 const Header = (props) => {
   return (

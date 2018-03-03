@@ -1,5 +1,4 @@
 import React from 'react';
-import $ from 'jquery';
 import Header from './Header';
 import Gigs from './Gigs';
 import Gig from './Gig';

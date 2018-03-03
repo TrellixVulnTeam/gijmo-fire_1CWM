@@ -1,12 +1,7 @@
 
 import React from 'react';
-import $ from 'jquery';
 import Header from './Header';
-import Artists from './Artists';
-import Artist from './Artist';
-import Venues from './Venues';
 import base from '../base';
-
 
 class App extends React.Component {
 
@@ -64,23 +59,8 @@ removeArtist(key) {
     return (
       <div className="tourgigs">
         <div className="header">
-          <Header tagline="Live Music Capital"/>
-          <ul className="list-of-artists">
-            {
-              Object
-                .keys(this.state.artists)
-                .map(key => <Artist key={key} details={this.state.artists[key]} params={this.props.match.params} />)
-            }
-          </ul>
+          <Header tagline={this.props.match.params.websiteId}/>
         </div>
-        <Artists
-          addArtist={this.addArtist}
-          params={this.props.match.params}
-          artists={this.state.artists}
-          updateArtist={this.updateArtist}
-          removeArtist={this.removeArtist}
-        />
-        <Venues />
       </div>
     )
   }

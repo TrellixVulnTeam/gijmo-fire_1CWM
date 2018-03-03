@@ -1,8 +1,6 @@
 import React from 'react';
 import AddArtistForm from './ArtistAddForm';
 import { slugify } from '../helper';
-import $ from 'jquery';
-import base from '../base';
 
 class Artists extends React.Component {
 

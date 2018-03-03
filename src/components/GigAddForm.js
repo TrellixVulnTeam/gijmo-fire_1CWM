@@ -2,15 +2,12 @@ import React from 'react';
 import { slugify } from '../helper';
 
 
-
 class GigAddForm extends React.Component {
 
   createGig(event) {
     event.preventDefault();
     console.log('Entering Gig');
     const artistName = this.props.artists[this.artist.value].artistName;
-    const venueName = this.props.venues[this.venue.value].venueName;
-
     const gig = {
       gigName: this.gigName.value,
       gigDate: this.gigDate.value,
@@ -18,11 +15,7 @@ class GigAddForm extends React.Component {
       gigFilename: this.gigDate.value + "_" + slugify(artistName)+ "_" + slugify(this.gigName.value),
       gigWebsite: this.props.params.websiteId,
       gigArtist: this.artist.value,
-      gigArtistName: artistName,
       gigVenue: this.venue.value,
-      gigVenueName: venueName
-
-
     }
     this.props.addGig(gig);
     this.gigForm.reset();

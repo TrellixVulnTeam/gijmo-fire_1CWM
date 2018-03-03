@@ -1,6 +1,5 @@
 
 import React from 'react';
-import $ from 'jquery';
 import Header from './Header';
 import Artists from './Artists';
 import Artist from './Artist';

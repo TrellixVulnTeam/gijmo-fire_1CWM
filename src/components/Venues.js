@@ -1,8 +1,6 @@
 import React from 'react';
 import AddVenueForm from './VenueAddForm';
 import { slugify } from '../helper';
-import $ from 'jquery';
-import base from '../base';
 
 class Venues extends React.Component {
 
@@ -15,10 +13,21 @@ class Venues extends React.Component {
   handleChange(e, key) {
     const name = e.target.name;
     const value = e.target.value;
+    const venue = this.props.venues[key];
+
     const fileNameObject = {}
     if (name == 'venueName') {
       fileNameObject['venueFilename'] = slugify(value);
     }
+
+    if (name == 'venueCity') {
+      fileNameObject['venueCityState'] = value+", "+venue.venueState;
+    }
+
+    if (name == 'venueState') {
+      fileNameObject['venueCityState'] =venue.venueCity+". "+value;
+    }
+
     this.setState({text: value,}, () => {
       const venue = this.props.venues[key];
       const updatedVenue = {
@@ -44,6 +53,8 @@ class Venues extends React.Component {
         </select>
         <input type="text" name="venueCity" value={venue.venueCity} placeholder="Venue City" onChange={(e) => this.handleChange(e, key)}/>
         <input type="text" name="venueState" value={venue.venueState} placeholder="Venue State" onChange={(e) => this.handleChange(e, key)}/>
+        <input type="text" name="venueCityState" value={venue.venueCityState} placeholder="Venue City State" readOnly/>
+
 
         <input type="text" name="venueFilename" value={venue.venueFilename} placeholder="Venue Filename" readOnly/>
         <button onClick={() => this.props.removeVenue(key)}>Remove Venue</button>
