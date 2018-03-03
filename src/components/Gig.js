@@ -5,8 +5,6 @@ class Gig extends React.Component {
     const details = this.props.details;
     return (
       <li className="gigComponent-gig">
-        {details.gigName}
-        {details.gigType}
         {details.gigFilename}
       </li>
     )

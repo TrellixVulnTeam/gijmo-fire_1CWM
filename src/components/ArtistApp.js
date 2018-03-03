@@ -118,6 +118,8 @@ class ArtistApp extends React.Component {
         <div className="header">
           <Header websiteId={this.props.match.params.websiteId}/>
         </div>
+        <h3>Artists</h3>
+
         <ul className="list-of-artists">
           {
             Object
@@ -125,7 +127,6 @@ class ArtistApp extends React.Component {
               .map(key => <Artist key={key} details={this.state.artists[key]} params={this.props.match.params} />)
           }
         </ul>
-        <h3>Artists</h3>
         <h3>Name | Type | Filename</h3>
 
         <Artists

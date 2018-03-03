@@ -1,9 +1,59 @@
 import React from 'react';
+import AddVenueForm from './VenueAddForm';
+import { slugify } from '../helper';
+import $ from 'jquery';
+import base from '../base';
 
 class Venues extends React.Component {
+
+  constructor() {
+    super();
+    this.renderVenues = this.renderVenues.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(e, key) {
+    const name = e.target.name;
+    const value = e.target.value;
+    const fileNameObject = {}
+    if (name == 'venueName') {
+      fileNameObject['venueFilename'] = slugify(value);
+    }
+    this.setState({text: value,}, () => {
+      const venue = this.props.venues[key];
+      const updatedVenue = {
+        ...venue,
+        ...fileNameObject,
+        [name]: value
+      }
+      this.props.updateVenue(key, updatedVenue);
+    });
+  }
+
+  renderVenues(key) {
+
+    const venue = this.props.venues[key];
+    return (
+      <div className="venue-edit" key={key} data-key={key}>
+        <input type="text" name="venueName" value={venue.venueName} placeholder="Venue Name" onChange={(e) => this.handleChange(e, key)}/>
+        <select type="text" name="venueType" value={venue.venueType} placeholder="Venue Type" onChange={(e) => this.handleChange(e, key)}>
+          <option value="venue">Theatre</option>
+          <option value="brand">Stadium</option>
+          <option value="person">Amphitheatre</option>
+          <option value="employee">Store</option>
+        </select>
+        <input type="text" name="venueFilename" value={venue.venueFilename} placeholder="Venue Filename" readOnly/>
+        <button onClick={() => this.props.removeVenue(key)}>Remove Venue</button>
+      </div>
+    )
+  }
+
   render() {
     return (
-      <p>Venues</p>
+      <div>
+      {Object.keys(this.props.venues).map(this.renderVenues)}
+      <AddVenueForm addVenue={this.props.addVenue} params={this.props.params} />
+      </div>
     )
   }
 }

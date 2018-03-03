@@ -17,7 +17,9 @@ class GigApp extends React.Component {
     // get initial state
     this.state = {
       gigs: {},
-      artists: {}
+      artists: {},
+      venues: {}
+
     };
   }
 
@@ -30,6 +32,11 @@ class GigApp extends React.Component {
     this.artistRef = base.syncState(`/website/${this.props.match.params.websiteId}/artists`, {
       context: this,
       state: 'artists'
+    });
+
+    this.venueRef = base.syncState(`/website/${this.props.match.params.websiteId}/venues`, {
+      context: this,
+      state: 'venues'
     });
   }
 
@@ -67,6 +74,16 @@ class GigApp extends React.Component {
           <Header websiteId={this.props.match.params.websiteId}/>
         </div>
         <h3>Gigs</h3>
+
+        <ul className="list-of-gigs">
+          {
+            Object
+              .keys(this.state.gigs)
+              .map(key => <Gig key={key} details={this.state.gigs[key]} params={this.props.match.params} />)
+          }
+        </ul>
+
+
         <h4>gigName | gigDate | gigType | Artist Dropdown Select | gigVenue  | GigFilename (gigDate + artistName + gigName)  | ArtistType-Lookup | ArtistName-Lookup </h4>
         <Gigs
           addGig={this.addGig}
@@ -75,6 +92,7 @@ class GigApp extends React.Component {
           updateGig={this.updateGig}
           removeGig={this.removeGig}
           artists={this.state.artists}
+          venues={this.state.venues}
         />
       </div>
     )

@@ -9,6 +9,8 @@ class GigAddForm extends React.Component {
     event.preventDefault();
     console.log('Entering Gig');
     const artistName = this.props.artists[this.artist.value].artistName;
+    const venueName = this.props.venues[this.venue.value].venueName;
+
     const gig = {
       gigName: this.gigName.value,
       gigDate: this.gigDate.value,
@@ -16,8 +18,9 @@ class GigAddForm extends React.Component {
       gigFilename: this.gigDate.value + "_" + slugify(artistName)+ "_" + slugify(this.gigName.value),
       gigWebsite: this.props.params.websiteId,
       gigArtist: this.artist.value,
-      gigVenue: this.gigVenue.value,
-      gigArtistName: artistName
+      gigArtistName: artistName,
+      gigVenue: this.venue.value,
+      gigVenueName: venueName
 
 
     }
@@ -48,11 +51,16 @@ class GigAddForm extends React.Component {
             )
           })}
         </select>
-        <select ref={(input) => this.gigVenue = input}>
-          <option value="redRocks">Red Rocks</option>
-          <option value="theFox">The Fox</option>
-          <option value="theBeacon">The Beacon</option>
-          <option value="Stubbs">Stubbs</option>
+        <select ref={(input) => this.venue = input}>
+          {Object.keys(this.props.venues).map((key) => {
+            return (
+              <option
+              key={key}
+              value={key}>
+              {this.props.venues[key].venueName}
+              </option>
+            )
+          })}
         </select>
 
 

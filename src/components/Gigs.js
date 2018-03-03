@@ -1,6 +1,8 @@
 import React from 'react';
 import GigAddForm from './GigAddForm'
 import Artists from './Artists';
+import Venues from './Venues';
+
 import { slugify } from '../helper';
 
 
@@ -11,6 +13,8 @@ class Gigs extends React.Component {
     this.renderGigs = this.renderGigs.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.artistArray = [];
+    this.venueArray = [];
+
   }
 
   handleChange(e, key) {
@@ -56,6 +60,16 @@ class Gigs extends React.Component {
     });
   }
 
+  
+  getVenuesArray() {
+    var arr = [];
+    const venues = this.props.venues;
+    Object.keys(venues).forEach((key, idx) => {
+      arr.push(venues[key].venueName)
+    });
+  }
+
+
 
   renderGigs(key) {
     const gig = this.props.gigs[key];
@@ -84,15 +98,23 @@ class Gigs extends React.Component {
             )
           })}
         </select>
-        <select type="text" name="gigVenue" value={gig.gigVenue} placeholder="Gig Venue" onChange={(e) => this.handleChange(e, key)}>
-          <option value="redRocks">Red Rocks</option>
-          <option value="theFox">The Fox</option>
-          <option value="theBeacon">The Beacon</option>
-          <option value="Stubbs">Stubbs</option>
+
+        <select type="text" name="gigVenue" value={gig.gigVenue} placeholder="Venue" onChange={(e) => this.handleChange(e, key)}>
+          {Object.keys(this.props.venues).map((key) => {
+            return (
+              <option
+              key={key}
+              value={key}>
+              {this.props.venues[key].venueName}
+              </option>
+            )
+          })}
         </select>
+
         <input type="text" name="gigFilename" value={gig.gigFilename} placeholder="Gig Filename" readOnly/>
         <input type="text" name="gigContactType" value={gigArtistType} placeholder="Artist Type" readOnly/>
         <input type="text" name="gigContactName" value={gigArtistName} placeholder="Artist Name" readOnly/>
+
 
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
@@ -107,7 +129,8 @@ class Gigs extends React.Component {
         <GigAddForm
           addGig={this.props.addGig}
           params={this.props.params}
-          artists={this.props.artists} />
+          artists={this.props.artists} 
+          venues={this.props.venues} />
       </div>
 
     )
