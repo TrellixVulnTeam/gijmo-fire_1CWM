@@ -37,11 +37,14 @@ class Venues extends React.Component {
       <div className="venue-edit" key={key} data-key={key}>
         <input type="text" name="venueName" value={venue.venueName} placeholder="Venue Name" onChange={(e) => this.handleChange(e, key)}/>
         <select type="text" name="venueType" value={venue.venueType} placeholder="Venue Type" onChange={(e) => this.handleChange(e, key)}>
-          <option value="venue">Theatre</option>
-          <option value="brand">Stadium</option>
-          <option value="person">Amphitheatre</option>
-          <option value="employee">Store</option>
+          <option value="theatre">Theatre</option>
+          <option value="stadium">Stadium</option>
+          <option value="amphitheatre">Amphitheatre</option>
+          <option value="store">Store</option>
         </select>
+        <input type="text" name="venueCity" value={venue.venueCity} placeholder="Venue City" onChange={(e) => this.handleChange(e, key)}/>
+        <input type="text" name="venueState" value={venue.venueState} placeholder="Venue State" onChange={(e) => this.handleChange(e, key)}/>
+
         <input type="text" name="venueFilename" value={venue.venueFilename} placeholder="Venue Filename" readOnly/>
         <button onClick={() => this.props.removeVenue(key)}>Remove Venue</button>
       </div>

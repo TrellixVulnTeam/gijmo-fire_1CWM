@@ -100,8 +100,6 @@ class VenueApp extends React.Component {
     const old_state = this.state.venues;
     this.setState({ venues }, () => {
       this.updateGigsOnVenueNameChange(key, old_state, updatedVenue);
-      this.updateGigsOnVenueTypeChange(key, old_state, updatedVenue);
-
     });
   }
 
