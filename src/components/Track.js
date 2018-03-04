@@ -5,7 +5,7 @@ class Track extends React.Component {
     const details = this.props.details;
     return (
       <li className="trackComponent-track">
-        {details.trackName}
+        {details.trackFilename}
       </li>
     )
   }

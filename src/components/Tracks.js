@@ -68,6 +68,9 @@ class Tracks extends React.Component {
           })}
         </select>
 
+        <input type="text" name="trackOrder" value={track.trackOrder} placeholder="Track Order" onChange={(e) => this.handleChange(e, key)}/>
+
+
         <select type="text" name="trackSong" value={track.trackSong} placeholder="Song" onChange={(e) => this.handleChange(e, key)}>
           {Object.keys(this.props.songs).map((key) => {
             return (

@@ -7,14 +7,15 @@ class AddTrackForm extends React.Component {
   createTrack(event) {
     event.preventDefault();
     console.log('Entering Track');
+    const gigFilename = this.props.gigs[this.gig.value].gigFilename;
 
     const track = {
       trackName: this.trackName.value,
-      trackFilename: slugify(this.trackName.value),
+      trackFilename: gigFilename+ "_" + slugify(this.trackName.value),
+      trackOrder: this.trackOrder.value,
       trackWebsite: this.props.params.websiteId,
       trackGig: this.gig.value,
       trackSong: this.song.value,
-
 
     }
     console.log(track)
@@ -36,6 +37,9 @@ class AddTrackForm extends React.Component {
             )
           })}
         </select>
+
+        <input ref={(input) => this.trackOrder = input} type="text" placeholder="Track Order" />
+
 
         <select ref={(input) => this.song = input}>
           {Object.keys(this.props.songs).map((key) => {
