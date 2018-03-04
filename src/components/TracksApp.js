@@ -14,7 +14,7 @@ class TrackApp extends React.Component {
     this.state = {
       tracks: {},
       gigs: {},
-
+      songs: {}
     };
   }
 
@@ -27,6 +27,10 @@ class TrackApp extends React.Component {
       context: this,
       state: `gigs`
     });
+    this.gigsRef = base.syncState(`/website/${this.props.match.params.websiteId}/songs`, {
+      context: this,
+      state: `songs`
+    });
   }
 
   componentWillUnmount() {
@@ -38,7 +42,7 @@ class TrackApp extends React.Component {
     const tracks = {...this.state.tracks};
     //add in our new tracks
     const timestamp = Date.now();
-    tracks[`song-${timestamp}`]= song;
+    tracks[`track-${timestamp}`]= song;
     //set state
     this.setState({ tracks: tracks })
   }
@@ -80,6 +84,8 @@ class TrackApp extends React.Component {
           updateTrack={this.updateTrack}
           removeTrack={this.removeTrack}
           gigs={this.state.gigs}
+          songs={this.state.songs}
+
 
         />
 

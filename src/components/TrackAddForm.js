@@ -13,6 +13,7 @@ class AddTrackForm extends React.Component {
       trackFilename: slugify(this.trackName.value),
       trackWebsite: this.props.params.websiteId,
       trackGig: this.gig.value,
+      trackSong: this.song.value,
 
 
     }
@@ -31,6 +32,18 @@ class AddTrackForm extends React.Component {
               key={key}
               value={key}>
               {this.props.gigs[key].gigFilename}
+              </option>
+            )
+          })}
+        </select>
+
+        <select ref={(input) => this.song = input}>
+          {Object.keys(this.props.songs).map((key) => {
+            return (
+              <option
+              key={key}
+              value={key}>
+              {this.props.songs[key].songFilename}
               </option>
             )
           })}

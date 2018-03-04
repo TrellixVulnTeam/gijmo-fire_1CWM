@@ -9,7 +9,7 @@ class Tracks extends React.Component {
     this.renderTracks = this.renderTracks.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.gigArray = [];
-
+    this.songArray = [];
   }
 
   handleChange(e, key) {
@@ -41,6 +41,14 @@ class Tracks extends React.Component {
     });
   }
 
+  getSongsArray() {
+    var arr = [];
+    const songs = this.props.songs;
+    Object.keys(songs).forEach((key, idx) => {
+      arr.push(songs[key].songFilename)
+    });
+  }
+
   renderTracks(key) {
 
     const track = this.props.tracks[key];
@@ -55,6 +63,18 @@ class Tracks extends React.Component {
               key={key}
               value={key}>
               {this.props.gigs[key].gigFilename}
+              </option>
+            )
+          })}
+        </select>
+
+        <select type="text" name="trackSong" value={track.trackSong} placeholder="Song" onChange={(e) => this.handleChange(e, key)}>
+          {Object.keys(this.props.songs).map((key) => {
+            return (
+              <option
+              key={key}
+              value={key}>
+              {this.props.songs[key].songFilename}
               </option>
             )
           })}
@@ -74,6 +94,7 @@ class Tracks extends React.Component {
       <AddTrackForm 
         addTrack={this.props.addTrack}
         gigs={this.props.gigs}
+        songs={this.props.songs}
         params={this.props.params} />
       </div>
     )
