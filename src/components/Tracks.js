@@ -8,12 +8,13 @@ class Tracks extends React.Component {
     super();
     this.renderTracks = this.renderTracks.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.gigArray = [];
+
   }
 
   handleChange(e, key) {
     const name = e.target.name;
     const value = e.target.value;
-    const track = this.props.tracks[key];
 
     const fileNameObject = {}
     if (name == 'trackName') {
@@ -32,12 +33,34 @@ class Tracks extends React.Component {
     });
   }
 
+  getGigsArray() {
+    var arr = [];
+    const gigs = this.props.gigs;
+    Object.keys(gigs).forEach((key, idx) => {
+      arr.push(gigs[key].gigFilename)
+    });
+  }
+
   renderTracks(key) {
 
     const track = this.props.tracks[key];
     return (
       <div className="track-edit" key={key} data-key={key}>
         <input type="text" name="trackName" value={track.trackName} placeholder="Track Name" onChange={(e) => this.handleChange(e, key)}/>
+        
+        <select type="text" name="trackGig" value={track.trackGig} placeholder="Gig" onChange={(e) => this.handleChange(e, key)}>
+          {Object.keys(this.props.gigs).map((key) => {
+            return (
+              <option
+              key={key}
+              value={key}>
+              {this.props.gigs[key].gigFilename}
+              </option>
+            )
+          })}
+        </select>
+        
+        
         <input type="text" name="trackFilename" value={track.trackFilename} placeholder="Track Filename" readOnly/>
         <button onClick={() => this.props.removeTrack(key)}>Remove Track</button>
       </div>
@@ -48,7 +71,10 @@ class Tracks extends React.Component {
     return (
       <div>
       {Object.keys(this.props.tracks).map(this.renderTracks)}
-      <AddTrackForm addTrack={this.props.addTrack} params={this.props.params} />
+      <AddTrackForm 
+        addTrack={this.props.addTrack}
+        gigs={this.props.gigs}
+        params={this.props.params} />
       </div>
     )
   }

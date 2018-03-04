@@ -13,6 +13,8 @@ class TrackApp extends React.Component {
     this.removeTrack = this.removeTrack.bind(this);
     this.state = {
       tracks: {},
+      gigs: {},
+
     };
   }
 
@@ -77,6 +79,8 @@ class TrackApp extends React.Component {
           tracks={this.state.tracks}
           updateTrack={this.updateTrack}
           removeTrack={this.removeTrack}
+          gigs={this.state.gigs}
+
         />
 
       </div>

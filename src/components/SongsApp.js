@@ -21,10 +21,7 @@ class SongApp extends React.Component {
       context: this,
       state: `songs`
     });
-    this.gigsRef = base.syncState(`/website/${this.props.match.params.websiteId}/gigs`, {
-      context: this,
-      state: `gigs`
-    });
+
   }
 
   componentWillUnmount() {
