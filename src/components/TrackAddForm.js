@@ -11,7 +11,7 @@ class AddTrackForm extends React.Component {
 
     const track = {
       trackName: this.trackName.value,
-      trackFilename: gigFilename+ "_" + slugify(this.trackName.value),
+      trackFilename: gigFilename+ "_" +slugify(this.trackOrder.value)+"_" + slugify(this.trackName.value),
       trackOrder: this.trackOrder.value,
       trackWebsite: this.props.params.websiteId,
       trackGig: this.gig.value,
