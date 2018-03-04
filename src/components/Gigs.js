@@ -1,6 +1,5 @@
 import React from 'react';
 import GigAddForm from './GigAddForm'
-import Venues from './Venues';
 import { slugify } from '../helper';
 
 
