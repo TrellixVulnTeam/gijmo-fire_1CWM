@@ -69,7 +69,7 @@ class SongApp extends React.Component {
               .map(key => <Song key={key} details={this.state.songs[key]} params={this.props.match.params} />)
           }
         </ul>
-        <h3>Name | Type | Filename</h3>
+        <h3>Name | Filename</h3>
 
         <Songs
           addSong={this.addSong}

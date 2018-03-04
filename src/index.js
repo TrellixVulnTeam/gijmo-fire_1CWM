@@ -6,6 +6,8 @@ import ArtistApp from './components/ArtistApp';
 import GigsApp from './components/GigsApp';
 import VenuesApp from './components/VenuesApp';
 import SongsApp from './components/SongsApp';
+import TracksApp from './components/TracksApp';
+
 
 
 import WebsiteCreator from './components/WebsiteCreator';
@@ -22,7 +24,9 @@ const Root = () => {
             <Route exact path="/website/:websiteId/artists"  component={ArtistApp} />
             <Route exact path="/website/:websiteId/gigs"  component={GigsApp} />
             <Route exact path="/website/:websiteId/venues"  component={VenuesApp} />
+            <Route exact path="/website/:websiteId/tracks"  component={TracksApp} />
             <Route exact path="/website/:websiteId/songs"  component={SongsApp} />
+
 
             <Route component={NotFound} />
           </Switch>
