@@ -15,6 +15,8 @@ class AddTrackForm extends React.Component {
       trackName: this.trackName.value,
       trackFilename: gigFilename+ "_" +slugify(this.trackOrder.value)+"_" + songFilename,
       trackOrder: this.trackOrder.value,
+      trackSet: this.trackSet.value,
+
       trackWebsite: this.props.params.websiteId,
       trackGig: this.gig.value,
       trackSong: this.song.value,
@@ -41,6 +43,12 @@ class AddTrackForm extends React.Component {
         </select>
 
         <input ref={(input) => this.trackOrder = input} type="text" placeholder="Track Order" />
+
+        <select ref={(input) => this.trackSet = input}>
+          <option value="Set 1">Set 1</option>
+          <option value="Set 2">Set 2</option>
+          <option value="Encore">Encore</option>
+        </select>
 
 
         <select ref={(input) => this.song = input}>
