@@ -12,7 +12,7 @@ class GigAddForm extends React.Component {
       gigName: this.gigName.value,
       gigDate: this.gigDate.value,
       gigType: this.gigType.value,
-      gigFilename: this.gigDate.value + "_" + slugify(artistName)+ "_" + slugify(this.gigName.value),
+      gigFilename: this.gigDate.value + "_" + slugify(artistName),
       gigWebsite: this.props.params.websiteId,
       gigArtist: this.artist.value,
       gigVenue: this.venue.value,

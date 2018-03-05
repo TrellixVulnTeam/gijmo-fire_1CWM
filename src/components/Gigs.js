@@ -2,8 +2,6 @@ import React from 'react';
 import GigAddForm from './GigAddForm'
 import { slugify } from '../helper';
 
-
-
 class Gigs extends React.Component {
   constructor() {
     super();
@@ -24,17 +22,12 @@ class Gigs extends React.Component {
 
     if (name == 'gigArtist') {
       gigArtistName = this.props.artists[value].artistName;
-      fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
-    }
-
-    if (name == 'gigName') {
-      fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName)+"_"+slugify(value);
+      fileNameObject['gigFilename'] = gig.gigDate+"_"+slugify(gigArtistName);
     }
 
     if (name == 'gigDate') {
-      fileNameObject['gigFilename'] = value+"_"+slugify(gigArtistName)+"_"+slugify(gig.gigName);
+      fileNameObject['gigFilename'] = value+"_"+slugify(gigArtistName);
     };
-
 
     this.setState({text: value,}, () => {
       const gig = this.props.gigs[key];
@@ -47,7 +40,6 @@ class Gigs extends React.Component {
     });
   }
 
-
   getArtistsArray() {
     var arr = [];
     const artists = this.props.artists;
@@ -55,7 +47,6 @@ class Gigs extends React.Component {
       arr.push(artists[key].artistName)
     });
   }
-
   
   getVenuesArray() {
     var arr = [];
@@ -65,16 +56,11 @@ class Gigs extends React.Component {
     });
   }
 
-
-
   renderGigs(key) {
     const gig = this.props.gigs[key];
     const gigArtistType = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistType : '');
     const gigArtistName = (this.props.artists[gig.gigArtist] ? this.props.artists[gig.gigArtist].artistName : '');
     const gigVenueCityState = (this.props.venues[gig.gigVenue] ? this.props.venues[gig.gigVenue].venueCityState : '');
-
-
-
 
     return (
       <div className="gig-edit" key={key}>
@@ -115,7 +101,6 @@ class Gigs extends React.Component {
         <input type="text" name="gigArtistType" value={gigArtistType} placeholder="Artist Type" readOnly/>
         <input type="text" name="gigArtistName" value={gigArtistName} placeholder="Artist Name" readOnly/>
         <input type="text" name="gigVenueCityState" value={gigVenueCityState} placeholder="Venue City State" readOnly/>
-
 
         <button onClick={() => this.props.removeGig(key)}>Remove Gig</button>
       </div>
