@@ -8,10 +8,12 @@ class AddTrackForm extends React.Component {
     event.preventDefault();
     console.log('Entering Track');
     const gigFilename = this.props.gigs[this.gig.value].gigFilename;
+    const songFilename = this.props.songs[this.song.value].songFilename;
+
 
     const track = {
       trackName: this.trackName.value,
-      trackFilename: gigFilename+ "_" +slugify(this.trackOrder.value)+"_" + slugify(this.trackName.value),
+      trackFilename: gigFilename+ "_" +slugify(this.trackOrder.value)+"_" + songFilename,
       trackOrder: this.trackOrder.value,
       trackWebsite: this.props.params.websiteId,
       trackGig: this.gig.value,

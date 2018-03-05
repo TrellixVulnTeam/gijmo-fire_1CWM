@@ -3,7 +3,6 @@ import AddTrackForm from './TrackAddForm';
 import { slugify } from '../helper';
 
 class Tracks extends React.Component {
-
   constructor() {
     super();
     this.renderTracks = this.renderTracks.bind(this);
@@ -15,10 +14,23 @@ class Tracks extends React.Component {
   handleChange(e, key) {
     const name = e.target.name;
     const value = e.target.value;
-
+    const track = this.props.tracks[key];
+    let trackGigFilename = (this.props.gigs[track.trackGig] ? this.props.gigs[track.trackGig].gigFilename : '');
+    let trackSongFilename = (this.props.songs[track.trackSong] ? this.props.songs[track.trackSong].songFilename : '');
+    
     const fileNameObject = {}
-    if (name == 'trackName') {
-      fileNameObject['trackFilename'] = slugify(value);
+    if (name == 'trackGig') {
+      trackGigFilename = this.props.gigs[value].gigFilename;
+      fileNameObject['trackFilename'] = trackGigFilename+ "_" + track.trackOrder +"_" + trackSongFilename;
+    }
+
+    if (name == 'trackOrder') {
+      fileNameObject['trackFilename'] = trackGigFilename+ "_" + value +"_" + trackSongFilename;
+    }
+
+    if (name == 'trackSong') {
+      trackSongFilename = this.props.songs[value].songFilename;
+      fileNameObject['trackFilename'] = trackGigFilename+ "_" + track.trackOrder +"_" + trackSongFilename;
     }
 
 
