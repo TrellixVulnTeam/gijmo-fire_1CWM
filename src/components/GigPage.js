@@ -97,7 +97,7 @@ getVenueData(venue_id) {
             {
               all_tracks.map((track, index) => {
                 const song_name = songs[track['trackSong']]['songName'];
-                return <li key={index}>{song_name} : Filename: {track['trackFilename']}</li>
+                return <li key={index}>{track['trackSet']}...{track['trackOrder']}...{song_name}</li>
               })
             }
             </ul>
@@ -128,7 +128,7 @@ render() {
       const { gigWebsite = '', gigFilename ='', gigDate = '', gigName = '', gigType = '', gigArtist = '', gigVenue = '' } = required_gig;
       const artist = this.getArtistData(gigArtist);
       const venue = this.getVenueData(gigVenue);
-      const {artistName = '', artistType = ''} = artist
+      const {artistName = '', artistType = ''} = artist;
       const all_tracks = this.getTracksForCurrentGig(required_gig_id);
       console.log (all_tracks)
 

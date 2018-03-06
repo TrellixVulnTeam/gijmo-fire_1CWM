@@ -16,6 +16,8 @@ class GigAddForm extends React.Component {
       gigWebsite: this.props.params.websiteId,
       gigArtist: this.artist.value,
       gigVenue: this.venue.value,
+      gigDescription: this.gigDescription.value,
+
     }
     this.props.addGig(gig);
     this.gigForm.reset();
@@ -55,6 +57,8 @@ class GigAddForm extends React.Component {
             )
           })}
         </select>
+        <input ref={(input) => this.gigDescription = input} type="text" placeholder="Gig Description" />
+
 
 
 

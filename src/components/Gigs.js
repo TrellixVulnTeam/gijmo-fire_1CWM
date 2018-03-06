@@ -96,6 +96,8 @@ class Gigs extends React.Component {
             )
           })}
         </select>
+        <input type="text" name="gigDescription" value={gig.gigDescription} placeholder="Gig Description" onChange={(e) => this.handleChange(e, key)}/>
+
 
         <input type="text" name="gigFilename" value={gig.gigFilename} placeholder="Gig Filename" readOnly/>
         <input type="text" name="gigArtistType" value={gigArtistType} placeholder="Artist Type" readOnly/>
