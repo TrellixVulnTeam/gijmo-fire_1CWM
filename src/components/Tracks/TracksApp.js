@@ -41,12 +41,12 @@ export default class Panel extends React.Component {
     })
   }
 
-  getProcessedDropDownItem(item_list) {
+  getProcessedDropDownItem(item_list, keyname) {
     return Object.keys(item_list).map((id) => {
-      const { name = '' } = item_list[id]
+      const { filename = '' } = item_list[id]
       return {
         key: id,
-        name: name ? name: id
+        name: keyname == 'events' ? filename : id
       }
     })
   }
@@ -56,7 +56,7 @@ export default class Panel extends React.Component {
       this.store_keyname_ref = firebase.ref().child(keyname);
       this.store_keyname_ref.on('value', (snapshot) => {
         const response_obj = snapshot.val();
-        const dropdown_items = this.getProcessedDropDownItem(response_obj);
+        const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         this.setState({
           [keyname + '_dropdown']: dropdown_items,
           [keyname]: response_obj,
