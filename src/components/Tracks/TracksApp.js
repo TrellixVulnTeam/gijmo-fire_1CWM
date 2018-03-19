@@ -43,10 +43,10 @@ export default class Panel extends React.Component {
 
   getProcessedDropDownItem(item_list, keyname) {
     return Object.keys(item_list).map((id) => {
-      const { filename = '' } = item_list[id]
+      const { filename = '', name = '' } = item_list[id]
       return {
         key: id,
-        name: keyname == 'events' ? filename : id
+        name: keyname == 'events' ? filename : name
       }
     })
   }
