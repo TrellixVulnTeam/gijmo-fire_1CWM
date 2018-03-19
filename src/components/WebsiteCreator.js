@@ -18,8 +18,7 @@ class WebsiteCreator extends React.Component {
   }
 
   componentWillMount() {
-    this.ref = base.syncState(`${this.props.location.pathname}/website`
-    , {
+    this.ref = base.syncState(`${this.props.location.pathname}/website`, {
       context: this,
       state: `websites`
     });

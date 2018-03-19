@@ -1,31 +1,27 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import App from './components/App';
-import ArtistApp from './components/ArtistApp';
-import GigRouteController from './components/GigRouteController';
-import VenuesApp from './components/VenuesApp';
-import SongsApp from './components/SongsApp';
-import TracksApp from './components/TracksApp';
-
-import WebsiteCreator from './components/WebsiteCreator';
-
+import ContactApp from './components/Contacts/ContactApp';
+import EventsApp from './components/Events/EventsApp';
+import VenuesApp from './components/Venues/VenuesApp';
+import SongsApp from './components/Songs/SongsApp';
+import TracksApp from './components/Tracks/TracksApp';
 import NotFound from './components/NotFound';
+import './styles/app.css'
+import './styles/wijmo.min.css'
+
 
 const Root = () => {
   return (
     <BrowserRouter>
       <div>
           <Switch>
-            <Route exact path="/" component={WebsiteCreator} />
-            <Route exact path="/website/:websiteId/" component={App} />
-            <Route exact path="/website/:websiteId/artists"  component={ArtistApp} />
-            <Route path="/website/:websiteId/gigs"  component={GigRouteController} />
-            <Route exact path="/website/:websiteId/venues"  component={VenuesApp} />
-            <Route exact path="/website/:websiteId/tracks"  component={TracksApp} />
-            <Route exact path="/website/:websiteId/songs"  component={SongsApp} />
-
-
+            <Route exact path="/" component={ContactApp} />
+            <Route exact path="/contacts"  component={ContactApp} />
+            <Route path="/events"  component={EventsApp} />
+            <Route exact path="/venues"  component={VenuesApp} />
+            <Route exact path="/tracks"  component={TracksApp} />
+            <Route exact path="/songs"  component={SongsApp} />
             <Route component={NotFound} />
           </Switch>
       </div>
