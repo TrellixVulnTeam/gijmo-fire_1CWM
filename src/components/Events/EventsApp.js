@@ -215,7 +215,7 @@ export default class Panel extends React.Component {
             { header: 'Contact', binding: 'contact',  showDropDown: true, dataMap: new DataMap(contacts_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
             { header: 'Venue', binding: 'venue',  showDropDown: true, dataMap: new DataMap(venues_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
             { header: 'Date', binding: 'date', width: '1*' },
-            { header: 'Filename', binding: 'filename', width: '1*' },
+            { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
           cellEditEnded={this.onCellEditEnded}

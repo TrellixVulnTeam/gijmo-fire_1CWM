@@ -182,7 +182,7 @@ export default class Panel extends React.Component {
                   { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
                   { header: 'Name', binding: 'name', width: '1*', isRequired: true },
                   { header: 'Type', binding: 'type', dataMap: new DataMap(this.getContactTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
-                  { header: 'Filename', binding: 'filename', width: '1*'},
+                  { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
                   { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
               ]}
               cellEditEnded={this.onCellEditEnded}

@@ -179,7 +179,7 @@ export default class Panel extends React.Component {
                     { header: 'City', binding: 'city', width: '1*', isRequired: true },
                     { header: 'State', binding: 'state', width: '1*', isRequired: true },
                     { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
-                    { header: 'Filename', binding: 'filename', width: '1*'},
+                    { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
                     { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
                 ]}
                 cellEditEnded={this.onCellEditEnded}
