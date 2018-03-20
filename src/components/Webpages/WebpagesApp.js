@@ -13,15 +13,14 @@ export default class Panel extends React.Component {
 
   constructor(props) {
     super(props);
-    this.onChange = this.onChange.bind(this)
     this.onInitialized = this.onInitialized.bind(this)
     this.onCellEditEnded = this.onCellEditEnded.bind(this)
     this.deleteSelected = this.deleteSelected.bind(this)
     this.setupDropdowns = this.setupDropdowns.bind(this)
     this.deselectEverything = this.deselectEverything.bind(this)
-    this.getUpdatedItem = this.getUpdatedItem.bind(this)
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
+    this.getUpdatedItem = this.getUpdatedItem.bind(this)
     // get initial state
     this.state = {
       events: [],
@@ -32,7 +31,7 @@ export default class Panel extends React.Component {
     };
   }
 
-  getProcessedEvents(events_obj) {
+  getProcessedWebpages(events_obj) {
     return Object.keys(events_obj).map((key) => {
       return {
         id: key,
@@ -42,27 +41,28 @@ export default class Panel extends React.Component {
     })
   }
 
-  getProcessedDropDownItem(item_list) {
-    console.log('item_list', item_list);
+  getProcessedDropDownItem(item_list, keyname) {
     return Object.keys(item_list).map((id) => {
-      const { name = '' } = item_list[id]
+      const { filename = '', name = '' } = item_list[id]
       return {
         key: id,
-        name
+        name: keyname == 'events' ? filename : name
       }
     })
   }
 
   setupDropdowns(dropdown_keys = []) {
     dropdown_keys.forEach((keyname) => {
-      this.store_contacts_ref = firebase.ref().child(keyname);
-      this.store_contacts_ref.on('value', (snapshot) => {
-        const events_obj = snapshot.val();
-        const dropdown_items = this.getProcessedDropDownItem(events_obj);
+      this.store_keyname_ref = firebase.ref().child(keyname);
+      this.store_keyname_ref.on('value', (snapshot) => {
+        const response_obj = snapshot.val();
+        const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         this.setState({
           [keyname + '_dropdown']: dropdown_items,
-          [keyname]: events_obj,
+          [keyname]: response_obj,
           new_mongid: mongoObjectId()
+        }, () => {
+          this.deselectEverything()
         })
       })
     })
@@ -73,51 +73,44 @@ export default class Panel extends React.Component {
       this.state.view.moveCurrentToPosition(-1)
     }
   }
-  // connect GroupPanel to FlexGrid when the component mounts
+  onScroll(event) {
+    const top = this.scrollY;
+    localStorage.setItem('pos', top);
+  }
+
   componentDidMount() {
-    this.store_ref = firebase.ref().child('events');
+    this.store_ref = firebase.ref().child('webpages');
     this.store_ref.on('value', (snapshot) => {
       const events_obj = snapshot.val();
-      const events_list = this.getProcessedEvents(events_obj);
+      const events_list = this.getProcessedWebpages(events_obj);
       const view = new CollectionView(events_list);
-      view.trackChanges = true;
+      view.webpageChanges = true;
       this.setState({
         view
       }, () => {
         this.deselectEverything()
       })
     })
-    this.setupDropdowns(['contacts', 'venues'])
-    window.addEventListener("scroll", function(event) {
-        const top = this.scrollY;
-        localStorage.setItem('pos', top);
-    }, false);
+    this.setupDropdowns(['websites', 'events'])
+    window.addEventListener("scroll", this.onScroll, false);
   }
 
-  getEventTypes() {
+  componentWillUnmount() {
+    localStorage.setItem('pos', 0);
+    window.removeEventListener('scroll', this.onScroll, false)
+  }
+
+  getPublishedStatus() {
     return [
       {
-        name : 'Concert',
-        key: 'concert'
+        name : 'Published',
+        key: 'published'
       },
       {
-        name : 'Conference',
-        key: 'conference'
-      },
-      {
-        name : 'Corporate',
-        key: 'corporate'
-      },
-      {
-        name : 'Product Launch',
-        key: 'product_launch'
-      },
+        name : 'Draft',
+        key: 'draft'
+      }
     ]
-  }
-
-  onChange(a, b) {
-    const item = this.state.view.itemsAdded
-    console.log('added item', item)
   }
 
   onInitialized(s, e) {
@@ -125,12 +118,13 @@ export default class Panel extends React.Component {
   }
 
   getUpdatedItem(item) {
-    const { contacts = {} } = this.state;
     const deep_item = {...item}
+    const { websites = {}, events = {}} = this.state;
     delete deep_item['id']
-    const date = deep_item['date'] ? deep_item['date'] : ''
-    const contact_filename = contacts[deep_item['contact']] ? contacts[deep_item['contact']]['filename'] : ''
-    deep_item['filename'] = slugify(date) + '_' + contact_filename
+    const website_slug = websites[item['website']] ? websites[item['website']]['filename'] : ''
+    const event_slug = events[item['event']] ? events[item['event']]['filename'] : ''
+    const filename = slugify(deep_item['name'] ? deep_item['name'] : '') 
+    deep_item['filename'] = filename;
     return deep_item
   }
 
@@ -140,6 +134,13 @@ export default class Panel extends React.Component {
     return !Object.keys(event).length
   }
 
+  updatedView(s, e) {
+    let nPos = localStorage.getItem("pos");
+    if (nPos) {
+      window.scrollTo(0, nPos);
+    }
+  }
+
   onCellEditEnded(s, e) {
     const { row, col } = e;
     let item = {...s.rows[row].dataItem};
@@ -147,11 +148,11 @@ export default class Panel extends React.Component {
       s.finishEditing()
       let item_id = item['id'];
       if (!item_id) {
-        item_id = 'event-'+mongoObjectId()
+        item_id = 'webpage-'+mongoObjectId()
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates['/events/' + item_id ] = updated_item;
+      updates['/webpages/' + item_id ] = updated_item;
       firebase.ref().update(updates);
     }
   }
@@ -159,7 +160,7 @@ export default class Panel extends React.Component {
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(event => {
-      updates['/events/'+event['id']] = null
+      updates['/webpages/'+event['id']] = null
     })
     firebase.ref().update(updates);
   }
@@ -174,6 +175,9 @@ export default class Panel extends React.Component {
     const panel = Control.getControl(document.getElementById('thePanel'));
     panel.grid = grid;
   }
+  getSetsOptions() {
+    return ['Set 1', 'Set 2', 'Encore']
+  }
   onClickAddRow() {
     this.bottom.scrollIntoView()
   }
@@ -181,21 +185,16 @@ export default class Panel extends React.Component {
   gotoTop() {
     window.scrollTo(0,0);
   }
+
   isLongList() {
     if (this.state.view.items) {
       return this.state.view.items.length > 30
     }
     return false
   }
-  updatedView(s, e) {
-    let nPos = localStorage.getItem("pos");
-    console.log('nPos', nPos)
-    if (nPos) {
-      window.scrollTo(0, nPos);
-    }
-  }
+
   getGrids() {
-    const { contacts_dropdown = [], venues_dropdown = [] } = this.state;
+    const { events_dropdown = [], websites_dropdown = [] } = this.state;
     if (this.state.view.length) {
       return 'Loading...'
     }
@@ -211,13 +210,12 @@ export default class Panel extends React.Component {
           autoGenerateColumns={false}
           columns={[
             { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-            { header: 'Type', binding: 'type', dataMap: new DataMap(this.getEventTypes(), 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Contact', binding: 'contact',  showDropDown: true, dataMap: new DataMap(contacts_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Venue', binding: 'venue',  showDropDown: true, dataMap: new DataMap(venues_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Venue City', binding: 'venueCity', width: '1*' },
+            { header: 'Published Status', binding: 'type', dataMap: new DataMap(this.getPublishedStatus(), 'key', 'name'), width: '1.2*', isRequired: true},
 
-            { header: 'Date', binding: 'date', width: '1*' },
-            { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
+            { header: 'Website', binding: 'website', width: '1.2*', dataMap: new DataMap(websites_dropdown, 'key', 'name'), isRequired: true },
+            { header: 'Name', binding: 'name', width: '1*' },
+
+            { header: 'filename', binding: 'filename', width: '1*', isReadOnly: true },
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
           cellEditEnded={this.onCellEditEnded}
@@ -232,19 +230,16 @@ export default class Panel extends React.Component {
   render() {
     return (
       <div>
-        <Header tab='events'/>
+        <Header tab='webpages'/>
         <div className='container'>
           <div className="row">
             <div className='col-md-12'>
-              <span className='table_header'>Events</span>
-              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+              <span className='table_header'>Webpages</span>
               <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
+              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
               {this.getGrids()}
-              {
-                this.isLongList() &&
-                <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
-                <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
-              }
+              {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+              {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
             </div>
           </div>
         </div>
