@@ -1,13 +1,15 @@
 import React from 'react';
 import Header from './../common/Header';
+import { FilterPanel } from './../common/FilterPanel';
 import firebase from '../../helpers/base';
 import mongoObjectId from '../../helpers/mongoId';
 import { slugify } from '../../helpers';
 import * as wjGrid from 'wijmo/wijmo.react.grid';
 import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
+import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control } from 'wijmo/wijmo'
+import { CollectionView, Control, hidePopup, hasClass, showPopup } from 'wijmo/wijmo'
 
 export default class Panel extends React.Component {
 
@@ -21,12 +23,13 @@ export default class Panel extends React.Component {
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
     this.getUpdatedItem = this.getUpdatedItem.bind(this)
+    this.updatedView = this.updatedView.bind(this)
     // get initial state
     this.state = {
       events: [],
       view: [],
-      contacts_dropdown: [],
-      venues_dropdown: [],
+      events_dropdown: null,
+      songs_dropdown: null,
       new_mongid: mongoObjectId()
     };
   }
@@ -122,7 +125,30 @@ export default class Panel extends React.Component {
   }
 
   onInitialized(s, e) {
-    return new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter_panel = new FilterPanel('#filterPanel', {
+        filter: filter,
+        placeholder: 'Active Filters'
+    });
+
+    const theColumnPicker = new ListBox('#theColumnPicker', {
+      itemsSource: s.columns,
+      checkedMemberPath: 'visible',
+      displayMemberPath: 'header',
+      lostFocus: () => {
+        hidePopup(theColumnPicker.hostElement);
+      }
+    })
+
+    let ref = document.getElementsByClassName('wj-topleft')[0];
+    ref.addEventListener('mousedown', function (e) {
+      if (hasClass(e.target, 'column-picker-icon')) {
+        showPopup(theColumnPicker.hostElement, ref, false, true, false);
+        theColumnPicker.focus();
+        e.preventDefault();
+      }
+    });
+    return filter_panel
   }
 
   getUpdatedItem(item) {
@@ -144,6 +170,7 @@ export default class Panel extends React.Component {
 
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
+    this.setupGrouping()
     if (nPos) {
       window.scrollTo(0, nPos);
     }
@@ -179,10 +206,20 @@ export default class Panel extends React.Component {
   }
 
   setupGrouping() {
-    const grid = Control.getControl(document.getElementById('theGrid'));
-    const panel = Control.getControl(document.getElementById('thePanel'));
-    panel.grid = grid;
+    const grouping_successful = false
+    let interval = null
+    const mapGrouping = () => {
+      try {
+        const grid = Control.getControl(document.getElementById('theGrid'));
+        const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.grid = grid;
+      } catch (e) {
+        setTimeout(mapGrouping, 1000)
+      }
+    }
+    setTimeout(mapGrouping, 1000)
   }
+
   getSetsOptions() {
     return ['Set 1', 'Set 2', 'Encore']
   }
@@ -200,15 +237,26 @@ export default class Panel extends React.Component {
     }
     return false
   }
-
+  formatItem(s, e) {
+    if (e.panel == s.topLeftCells) {
+      e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
+    }
+  }
+  getLoader() {
+    return (
+      <div className="text-center">
+        Crunching the latest data...
+      </div>
+    )
+  }
   getGrids() {
     const { events_dropdown = [], songs_dropdown = [] } = this.state;
-    if (this.state.view.length) {
-      return 'Loading...'
+    if (events_dropdown == null || songs_dropdown == null) {
+      return this.getLoader()
     }
     window.setTimeout(this.setupGrouping, 2000)
     return (
-      <div key={this.state.new_mongid}>
+      <div>
         <GroupPanel
           id="thePanel"
           placeholder="Drag columns here to create Groups"
@@ -230,6 +278,7 @@ export default class Panel extends React.Component {
           initialized={ this.onInitialized }
           allowAddNew={true}
           updatedView={this.updatedView}
+          formatItem={this.formatItem}
         />
       </div>
     )
@@ -246,6 +295,10 @@ export default class Panel extends React.Component {
               {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
             </div>
           </div>
+        </div>
+        <div id="filterPanel"></div>
+        <div style={{display : 'none'}}>
+          <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
         <div className='container'>

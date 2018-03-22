@@ -10,8 +10,8 @@ import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
 import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
 import { CollectionView, Control, hidePopup, hasClass, showPopup } from 'wijmo/wijmo'
-console.log('ListBox', ListBox)
-export default class Panel extends React.Component {
+
+export default class ContactApp extends React.Component {
 
   constructor(props) {
     super(props);
@@ -20,13 +20,13 @@ export default class Panel extends React.Component {
     this.onInitialized = this.onInitialized.bind(this)
     this.onCellEditEnded = this.onCellEditEnded.bind(this)
     this.deleteSelected = this.deleteSelected.bind(this)
-    this.deselectEverything = this.deselectEverything.bind(this)
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
+    this.updatedView = this.updatedView.bind(this)
     // get initial state
     this.state = {
       contacts: [],
-      view: []
+      view: null
     };
   }
 
@@ -40,31 +40,34 @@ export default class Panel extends React.Component {
     })
   }
 
-  deselectEverything() {
-    if (this.state.view.moveCurrentToPosition) {
-      this.state.view.moveCurrentToPosition(-1)
-    }
-  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-      this.store_ref = firebase.ref().child('contacts');
-      this.store_ref.on('value', (snapshot) => {
-        const contacts_obj = snapshot.val();
-        const contacts_list = this.getProcessedContacts(contacts_obj);
-        const view = new CollectionView(contacts_list);
-        view.trackChanges = true;
-        this.setState({
-          view
-        }, () => {
-          this.deselectEverything()
-        })
+    this.store_ref = firebase.ref().child('contacts');
+    this.store_ref.on('value', (snapshot) => {
+      const contacts_obj = snapshot.val();
+      const contacts_list = this.getProcessedContacts(contacts_obj);
+      const view = new CollectionView(contacts_list);
+      view.trackChanges = true;
+      this.setState({
+        view
       })
-      const grid = Control.getControl(document.getElementById('theGrid'));
-      const panel = Control.getControl(document.getElementById('thePanel'));
-      panel.grid = grid;
-      window.addEventListener("scroll", this.onScroll, false);
+    })
+    window.addEventListener("scroll", this.onScroll, false);
   }
-
+  setupGrouping() {
+    const grouping_successful = false
+    let interval = null
+    const mapGrouping = () => {
+      try {
+        const grid = Control.getControl(document.getElementById('theGrid'));
+        const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.grid = grid;
+      } catch (e) {
+        setTimeout(mapGrouping, 1000)
+      }
+    }
+    setTimeout(mapGrouping, 1000)
+  }
   componentWillUnmount() {
     localStorage.setItem('pos', 0);
     window.removeEventListener('scroll', this.onScroll, false)
@@ -101,8 +104,6 @@ export default class Panel extends React.Component {
   onChange(s, e) {
     const item = this.state.view.itemsAdded
     let index = 0
-    console.log('item index', item, item.length, item[item.length-1])
-    console.log('s and e', s, e)
   }
 
   onScroll(event) {
@@ -126,7 +127,7 @@ export default class Panel extends React.Component {
       }
     })
 
-    let ref = s.hostElement.querySelector('.wj-topleft');
+    let ref = document.getElementsByClassName('wj-topleft')[0];
     ref.addEventListener('mousedown', function (e) {
       if (hasClass(e.target, 'column-picker-icon')) {
         showPopup(theColumnPicker.hostElement, ref, false, true, false);
@@ -187,13 +188,14 @@ export default class Panel extends React.Component {
     window.scrollTo(0,0);
   }
   isLongList() {
-    if (this.state.view.items) {
+    if (this.state.view && this.state.view.items) {
       return this.state.view.items.length > 30
     }
     return false
   }
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
+    this.setupGrouping()
     if (nPos) {
       window.scrollTo(0, nPos);
     }
@@ -203,25 +205,24 @@ export default class Panel extends React.Component {
       e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
     }
   }
-  render() {
+  getLoader() {
     return (
-      <div>
-        <Header tab='contacts'/>
-        <div className='container'>
-          <div className="row">
-            <div className='col-md-12'>
-              <span className='table_header'>Contacts</span>
-              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
-              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-            </div>
-          </div>
-        </div>
-        <div id="filterPanel"></div>
+      <div className="text-center">
+        Crunching the latest data...
+      </div>
+    )
+  }
+  getGrids() {
+    const { view } = this.state;
+    if (view == null) {
+      return this.getLoader()
+    }
+    return (
+      <div >
         <GroupPanel
           id="thePanel"
           placeholder="Drag columns here to create Groups"
-          className='clearfix mb10 text-center br-4'
-        />
+          className="clearfix mb10 text-center br-4"/>
         <wjGrid.FlexGrid
           id ='theGrid'
           autoGenerateColumns={false}
@@ -242,14 +243,36 @@ export default class Panel extends React.Component {
           updatedView={this.updatedView}
           formatItem={this.formatItem}
         />
+      </div>
+    )
+  }
+  render() {
+
+    return (
+      <div>
+        <Header tab='contacts'/>
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
+              <span className='table_header'>Contacts</span>
+              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
+              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+            </div>
+          </div>
+        </div>
+        <div id="filterPanel"></div>
         <div style={{display : 'none'}}>
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
-        {
-          this.isLongList() &&
-          <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
-          <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
-        }
+        {this.getGrids()}
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
+              {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+              {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

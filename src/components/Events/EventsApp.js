@@ -1,13 +1,15 @@
 import React from 'react';
 import Header from './../common/Header';
 import firebase from '../../helpers/base';
+import { FilterPanel } from './../common/FilterPanel';
 import mongoObjectId from '../../helpers/mongoId';
 import { slugify } from '../../helpers';
 import * as wjGrid from 'wijmo/wijmo.react.grid';
 import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
+import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control } from 'wijmo/wijmo'
+import { CollectionView, Control, hidePopup, hasClass, showPopup, format } from 'wijmo/wijmo'
 
 export default class Panel extends React.Component {
 
@@ -22,13 +24,15 @@ export default class Panel extends React.Component {
     this.getUpdatedItem = this.getUpdatedItem.bind(this)
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
+    this.updatedView = this.updatedView.bind(this)
     // get initial state
+    this.initialised = false
     this.state = {
       events: [],
       view: [],
-      contacts_dropdown: [],
-      venues_dropdown: [],
-      new_mongid: mongoObjectId()
+      contacts_dropdown: null,
+      venues_dropdown: null,
+      new_mongid: mongoObjectId(),
     };
   }
 
@@ -37,6 +41,7 @@ export default class Panel extends React.Component {
       return {
         id: key,
         sel_for_deletion: false,
+        link: 'https://google.com/',
         ...events_obj[key],
       }
     })
@@ -72,6 +77,10 @@ export default class Panel extends React.Component {
       this.state.view.moveCurrentToPosition(-1)
     }
   }
+  onScroll(event) {
+    const top = this.scrollY;
+    localStorage.setItem('pos', top);
+  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
     this.store_ref = firebase.ref().child('events');
@@ -87,10 +96,7 @@ export default class Panel extends React.Component {
       })
     })
     this.setupDropdowns(['contacts', 'venues'])
-    window.addEventListener("scroll", function(event) {
-        const top = this.scrollY;
-        localStorage.setItem('pos', top);
-    }, false);
+    window.addEventListener("scroll", this.onScroll, false);
   }
 
   getEventTypes() {
@@ -119,7 +125,30 @@ export default class Panel extends React.Component {
   }
 
   onInitialized(s, e) {
-    return new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter_panel = new FilterPanel('#filterPanel', {
+        filter: filter,
+        placeholder: 'Active Filters'
+    });
+
+    const theColumnPicker = new ListBox('#theColumnPicker', {
+      itemsSource: s.columns,
+      checkedMemberPath: 'visible',
+      displayMemberPath: 'header',
+      lostFocus: () => {
+        hidePopup(theColumnPicker.hostElement);
+      }
+    })
+
+    let ref = document.getElementsByClassName('wj-topleft')[0];
+    ref.addEventListener('mousedown', function (e) {
+      if (hasClass(e.target, 'column-picker-icon')) {
+        showPopup(theColumnPicker.hostElement, ref, false, true, false);
+        theColumnPicker.focus();
+        e.preventDefault();
+      }
+    });
+    return filter_panel
   }
 
   getUpdatedItem(item) {
@@ -168,10 +197,20 @@ export default class Panel extends React.Component {
   }
 
   setupGrouping() {
-    const grid = Control.getControl(document.getElementById('theGrid'));
-    const panel = Control.getControl(document.getElementById('thePanel'));
-    panel.grid = grid;
+    const grouping_successful = false
+    let interval = null
+    const mapGrouping = () => {
+      try {
+        const grid = Control.getControl(document.getElementById('theGrid'));
+        const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.grid = grid;
+      } catch (e) {
+        setTimeout(mapGrouping, 1000)
+      }
+    }
+    setTimeout(mapGrouping, 1000)
   }
+
   onClickAddRow() {
     this.bottom.scrollIntoView()
   }
@@ -187,18 +226,34 @@ export default class Panel extends React.Component {
   }
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
+    this.setupGrouping()
     if (nPos) {
       window.scrollTo(0, nPos);
     }
   }
-  getGrids() {
-    const { contacts_dropdown = [], venues_dropdown = [] } = this.state;
-    if (this.state.view.length) {
-      return 'Loading...'
+  formatItem(s, e) {
+    const flex = s;
+    if (e.panel == flex.topLeftCells) {
+      e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
     }
-    window.setTimeout(this.setupGrouping, 2000)
+    if (e.panel == flex.cells && flex.columns[e.col].binding == 'link' && flex.rows[e.row].dataItem && flex.rows[e.row].dataItem.id) {
+      e.cell.innerHTML = format('<div class="text-center"><a href="/event/{id}" target="_blank"> Link &rarr; </a></div>', flex.rows[e.row].dataItem);
+    }
+  }
+  getLoader() {
     return (
-      <div key={this.state.new_mongid}>
+      <div className="text-center">
+        Crunching the latest data...
+      </div>
+    )
+  }
+  getGrids() {
+    const { contacts_dropdown, venues_dropdown } = this.state;
+    if (contacts_dropdown == null || venues_dropdown == null) {
+      return this.getLoader()
+    }
+    return (
+      <div >
         <GroupPanel
           id="thePanel"
           placeholder="Drag columns here to create Groups"
@@ -213,6 +268,7 @@ export default class Panel extends React.Component {
             { header: 'Venue', binding: 'venue',  showDropDown: true, dataMap: new DataMap(venues_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
             { header: 'Date', binding: 'date', width: '1*' },
             { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
+            { header: 'Link', binding: 'link', width: '1*', isReadOnly: true},
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
           cellEditEnded={this.onCellEditEnded}
@@ -220,6 +276,7 @@ export default class Panel extends React.Component {
           initialized={ this.onInitialized }
           allowAddNew={true}
           updatedView={this.updatedView}
+          formatItem={this.formatItem}
         />
       </div>
     )
@@ -236,6 +293,10 @@ export default class Panel extends React.Component {
               {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
             </div>
           </div>
+        </div>
+        <div id="filterPanel"></div>
+        <div style={{display : 'none'}}>
+          <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
         <div className='container'>

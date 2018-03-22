@@ -1,13 +1,15 @@
 import React from 'react';
 import Header from './../common/Header';
+import { FilterPanel } from './../common/FilterPanel';
 import firebase from '../../helpers/base';
 import mongoObjectId from '../../helpers/mongoId';
 import { slugify } from '../../helpers';
 import * as wjGrid from 'wijmo/wijmo.react.grid';
 import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
+import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control } from 'wijmo/wijmo'
+import { CollectionView, Control, hidePopup, hasClass, showPopup } from 'wijmo/wijmo'
 
 export default class Panel extends React.Component {
 
@@ -21,10 +23,11 @@ export default class Panel extends React.Component {
     this.deselectEverything = this.deselectEverything.bind(this)
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
+    this.updatedView = this.updatedView.bind(this)
     // get initial state
     this.state = {
       venues: [],
-      view: []
+      view: null
     };
   }
 
@@ -61,14 +64,25 @@ export default class Panel extends React.Component {
           this.deselectEverything()
         })
       })
-      const grid = Control.getControl(document.getElementById('theGrid'));
-      const panel = Control.getControl(document.getElementById('thePanel'));
-      panel.grid = grid;
       window.addEventListener("scroll", this.onScroll, false);
   }
-
+  setupGrouping() {
+    const grouping_successful = false
+    let interval = null
+    const mapGrouping = () => {
+      try {
+        const grid = Control.getControl(document.getElementById('theGrid'));
+        const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.grid = grid;
+      } catch (e) {
+        setTimeout(mapGrouping, 1000)
+      }
+    }
+    setTimeout(mapGrouping, 1000)
+  }
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
+    this.setupGrouping()
     if (nPos) {
       window.scrollTo(0, nPos);
     }
@@ -105,8 +119,30 @@ export default class Panel extends React.Component {
   }
 
   onInitialized(s, e) {
+    const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter_panel = new FilterPanel('#filterPanel', {
+        filter: filter,
+        placeholder: 'Active Filters'
+    });
 
-    return new FlexGridFilter(s); // add a FlexGridFilter to it
+    const theColumnPicker = new ListBox('#theColumnPicker', {
+      itemsSource: s.columns,
+      checkedMemberPath: 'visible',
+      displayMemberPath: 'header',
+      lostFocus: () => {
+        hidePopup(theColumnPicker.hostElement);
+      }
+    })
+
+    let ref = document.getElementsByClassName('wj-topleft')[0];
+    ref.addEventListener('mousedown', function (e) {
+      if (hasClass(e.target, 'column-picker-icon')) {
+        showPopup(theColumnPicker.hostElement, ref, false, true, false);
+        theColumnPicker.focus();
+        e.preventDefault();
+      }
+    });
+    return filter_panel
   }
 
   getUpdatedItem(item) {
@@ -161,30 +197,35 @@ export default class Panel extends React.Component {
     window.scrollTo(0,0);
   }
   isLongList() {
-    if (this.state.view.items) {
+    if (this.state.view && this.state.view.items) {
       return this.state.view.items.length > 30
     }
     return false
   }
-  render() {
+  formatItem(s, e) {
+    if (e.panel == s.topLeftCells) {
+      e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
+    }
+  }
+  getLoader() {
     return (
-      <div>
-        <Header tab='venues'/>
-        <div className='container'>
-          <div className="row">
-            <div className='col-md-12'>
-              <span className='table_header'>Venues</span>
-              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
-              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-            </div>
-          </div>
-        </div>
+      <div className="text-center">
+        Crunching the latest data...
+      </div>
+    )
+  }
+  getGrids() {
+    const { view } = this.state;
+    if (view == null) {
+      return this.getLoader()
+    }
+    window.setTimeout(this.setupGrouping, 2000)
+    return (
+      <div >
         <GroupPanel
           id="thePanel"
           placeholder="Drag columns here to create Groups"
-          className='clearfix mb10 text-center br-4'
-        />
-
+          className="clearfix mb10 text-center br-4"/>
         <wjGrid.FlexGrid
           id ='theGrid'
           autoGenerateColumns={false}
@@ -206,15 +247,34 @@ export default class Panel extends React.Component {
           allowAddNew={true}
           onRowAdded={this.onChange}
           updatedView={this.updatedView}
+          formatItem={this.formatItem}
         />
+      </div>
+    )
+  }
+  render() {
+    return (
+      <div>
+        <Header tab='venues'/>
         <div className='container'>
           <div className="row">
             <div className='col-md-12'>
-              {
-                this.isLongList() &&
-                <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
-                <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
-              }
+              <span className='table_header'>Venues</span>
+              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
+              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+            </div>
+          </div>
+        </div>
+        <div id="filterPanel"></div>
+        <div style={{display : 'none'}}>
+          <div id="theColumnPicker" className="column-picker"></div>
+        </div>
+        {this.getGrids()}
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
+              {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+              {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
             </div>
           </div>
         </div>

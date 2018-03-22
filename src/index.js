@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import ContactApp from './components/Contacts/ContactApp';
 import EventsApp from './components/Events/EventsApp';
+import EventPage from './components/Events/EventPage';
 import VenuesApp from './components/Venues/VenuesApp';
 import SongsApp from './components/Songs/SongsApp';
 import TracksApp from './components/Tracks/TracksApp';
@@ -19,6 +20,7 @@ const Root = () => {
             <Route exact path="/" component={ContactApp} />
             <Route exact path="/contacts"  component={ContactApp} />
             <Route path="/events"  component={EventsApp} />
+            <Route exact path="/event/:eventId"  component={EventPage} />
             <Route exact path="/venues"  component={VenuesApp} />
             <Route exact path="/tracks"  component={TracksApp} />
             <Route exact path="/songs"  component={SongsApp} />

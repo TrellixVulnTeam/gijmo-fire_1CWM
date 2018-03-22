@@ -1,6 +1,5 @@
 import React from 'react';
-import base from './../../helpers/base';
-import Events from './Events';
+import firebase from '../../helpers/base';
 import Header from './../common/Header';
 
 
@@ -17,37 +16,21 @@ class EventPage extends React.Component {
     this.getVenueData = this.getVenueData.bind(this);
     this.getTracksForCurrentEvent = this.getTracksForCurrentEvent.bind(this);
     this.renderTracks = this.renderTracks.bind(this);
+    this.setupDropdowns = this.setupDropdowns.bind(this)
   }
-
-  componentWillMount() {
-    this.ref = base.syncState(`/events`, {
-      context: this,
-      state: `events`
-    });
-
-    this.contactRef = base.syncState(`/contacts`, {
-        context: this,
-        state: 'contacts'
-    });
-
-      this.venueRef = base.syncState(`/venues`, {
-        context: this,
-        state: 'venues'
-    });
-
-    this.venueRef = base.syncState(`/tracks`, {
-      context: this,
-      state: 'tracks'
-    });
-
-    this.venueRef = base.syncState(`/songs`, {
-      context: this,
-      state: 'songs'
-    });
+  setupDropdowns(dropdown_keys = []) {
+    dropdown_keys.forEach((keyname) => {
+      this.store_contacts_ref = firebase.ref().child(keyname);
+      this.store_contacts_ref.on('value', (snapshot) => {
+        const events_obj = snapshot.val();
+        this.setState({
+          [keyname]: events_obj
+        })
+      })
+    })
   }
-
-  componentWillUnmount() {
-    base.removeBinding(this.ref);
+  componentDidMount() {
+    this.setupDropdowns(['events', 'contacts', 'venues', 'tracks', 'songs'])
   }
 
   getContactData(contact_id) {
@@ -90,11 +73,11 @@ getVenueData(venue_id) {
       return (
         <div>
           <h2>All Tracks</h2>
-            <ul>
+            <ul className="list-group">
             {
               all_tracks.map((track, index) => {
                 const song_name = songs[track['song']]['name'];
-                return <li key={index}>{track['set']}...{track['order']}...{song_name}</li>
+                return <li className="list-group-item" key={index}>{track['set']}...{track['order']}...{song_name}</li>
               })
             }
             </ul>
@@ -110,14 +93,13 @@ render() {
 
   const events = this.state.events;
 
-  let required_event_id = '';
   let required_event = events[event_id];
 
   if (required_event) {
     const { filename ='', date = '', name = '', type = '', contact = '', venue = '' } = required_event;
     const contact_data = this.getContactData(contact);
     const venue_data = this.getVenueData(venue);
-    const all_tracks = this.getTracksForCurrentEvent(required_event_id);
+    const all_tracks = this.getTracksForCurrentEvent(event_id);
 
     return (
       <div className="tourevents">
@@ -126,19 +108,38 @@ render() {
           </div>
           <div>
               <h1>Event Page</h1>
-              <h2>Filename: {required_event['filename']}</h2>
-              <h2>Date: {required_event['date']}</h2>
-              <h2>Name (Identifyer): {required_event['name']}</h2>
-              <h2>Type: {required_event['type']}</h2>
-              <h2>ContactID: {required_event['contact']}</h2>
-              <h2>ContactName: {contact_data.name}</h2>
-              <h2>Venue: {venue_data.name}</h2>
+              <div style={{margin: 'auto', background: '#e7e7e7', width: '600px', padding: '10px'}}>
+                <div class="panel panel-default">
+                  <h3>Filename</h3>
+                  <h4>{required_event['filename']}</h4>
+                </div>
+                <div class="panel panel-default">
+                  <h3>Date</h3>
+                  <h4>{required_event['date']}</h4>
+                </div>
+                <div class="panel panel-default">
+                  <h3>Type</h3>
+                  <h4>{required_event['type']}</h4>
+                </div>
+                <div class="panel panel-default">
+                  <h3>ContactID</h3>
+                  <h4>{required_event['contact']}</h4>
+                </div>
+                <div class="panel panel-default">
+                  <h3>ContactName</h3>
+                  <h4>{contact_data.name}</h4>
+                </div>
+                <div class="panel panel-default">
+                  <h3>Venue</h3>
+                  <h4>{venue_data.name}</h4>
+                </div>
               {this.renderTracks(all_tracks)}
+              </div>
           </div>
       </div>
     );
   }
-  return 'Loading...';
+  return <div className="text-center mt10">Loading...</div>;
   }
 };
 
