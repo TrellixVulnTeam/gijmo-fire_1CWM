@@ -158,7 +158,7 @@ export default class Panel extends React.Component {
     const song_slug = songs[item['song']] ? songs[item['song']]['filename'] : ''
     const event_slug = events[item['event']] ? events[item['event']]['filename'] : ''
     deep_item['filename'] = event_slug + '_' + slugify(deep_item['order'] ? deep_item['order'] : '') + '_' + song_slug
-    deep_item['order'] = parseInt(deep_item['order'])
+    deep_item['order'] = deep_item['order'] ? parseInt(deep_item['order']) : ''
     return deep_item
   }
 
@@ -179,6 +179,7 @@ export default class Panel extends React.Component {
   onCellEditEnded(s, e) {
     const { row, col } = e;
     let item = {...s.rows[row].dataItem};
+    console.log('item', item)
     if (!this.isRowEmpty(item)) {
       s.finishEditing()
       let item_id = item['id'];
@@ -188,6 +189,7 @@ export default class Panel extends React.Component {
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
       updates['/tracks/' + item_id ] = updated_item;
+      console.log('/tracks/' + item_id, updated_item)
       firebase.ref().update(updates);
     }
   }
