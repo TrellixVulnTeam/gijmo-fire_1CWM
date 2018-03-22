@@ -42,6 +42,11 @@ export default class Panel extends React.Component {
       this.state.view.moveCurrentToPosition(-1)
     }
   }
+
+  onScroll(event) {
+    const top = this.scrollY;
+    localStorage.setItem('pos', top);
+  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
       this.store_ref = firebase.ref().child('venues');
@@ -59,6 +64,14 @@ export default class Panel extends React.Component {
       const grid = Control.getControl(document.getElementById('theGrid'));
       const panel = Control.getControl(document.getElementById('thePanel'));
       panel.grid = grid;
+      window.addEventListener("scroll", this.onScroll, false);
+  }
+
+  updatedView(s, e) {
+    let nPos = localStorage.getItem("pos");
+    if (nPos) {
+      window.scrollTo(0, nPos);
+    }
   }
 
   getVenuesData() {
@@ -163,33 +176,40 @@ export default class Panel extends React.Component {
               <span className='table_header'>Venues</span>
               {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
               <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-              <GroupPanel
-                id="thePanel"
-                placeholder="Drag columns here to create Groups"
-                className='clearfix mb10 text-center br-4'
-              />
+            </div>
+          </div>
+        </div>
+        <GroupPanel
+          id="thePanel"
+          placeholder="Drag columns here to create Groups"
+          className='clearfix mb10 text-center br-4'
+        />
 
-              <wjGrid.FlexGrid
-                id ='theGrid'
-                autoGenerateColumns={false}
-                newRowAtTop={false}
-                columns={[
-                    { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-                    { header: 'Name', binding: 'name', width: '1*', isRequired: true },
-                    { header: 'City', binding: 'city', width: '1*', isRequired: true },
-                    { header: 'State', binding: 'state', width: '1*', isRequired: true },
-                    { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
-                    { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
-                    { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
-                ]}
-                cellEditEnded={this.onCellEditEnded}
-                showDropDown={true}
-                itemsSource={this.state.view}
-                initialized={ this.onInitialized }
-                // cellEditEnding={this.onChange}
-                allowAddNew={true}
-                onRowAdded={this.onChange}
-              />
+        <wjGrid.FlexGrid
+          id ='theGrid'
+          autoGenerateColumns={false}
+          newRowAtTop={false}
+          columns={[
+              { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
+              { header: 'Name', binding: 'name', width: '1*', isRequired: true },
+              { header: 'City', binding: 'city', width: '1*', isRequired: true },
+              { header: 'State', binding: 'state', width: '1*', isRequired: true },
+              { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
+              { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
+              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
+          ]}
+          cellEditEnded={this.onCellEditEnded}
+          showDropDown={true}
+          itemsSource={this.state.view}
+          initialized={ this.onInitialized }
+          // cellEditEnding={this.onChange}
+          allowAddNew={true}
+          onRowAdded={this.onChange}
+          updatedView={this.updatedView}
+        />
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
               {
                 this.isLongList() &&
                 <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&

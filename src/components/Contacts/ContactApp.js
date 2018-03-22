@@ -1,14 +1,16 @@
 import React from 'react';
 import Header from './../common/Header';
+import { FilterPanel } from './../common/FilterPanel';
 import firebase from '../../helpers/base';
 import mongoObjectId from '../../helpers/mongoId';
 import { slugify } from '../../helpers';
 import * as wjGrid from 'wijmo/wijmo.react.grid';
 import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
+import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control } from 'wijmo/wijmo'
-
+import { CollectionView, Control, hidePopup, hasClass, showPopup } from 'wijmo/wijmo'
+console.log('ListBox', ListBox)
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -60,8 +62,13 @@ export default class Panel extends React.Component {
       const grid = Control.getControl(document.getElementById('theGrid'));
       const panel = Control.getControl(document.getElementById('thePanel'));
       panel.grid = grid;
+      window.addEventListener("scroll", this.onScroll, false);
   }
 
+  componentWillUnmount() {
+    localStorage.setItem('pos', 0);
+    window.removeEventListener('scroll', this.onScroll, false)
+  }
   getContactsData() {
     return Object.values(this.state.contacts)
   }
@@ -91,14 +98,43 @@ export default class Panel extends React.Component {
     ]
   }
 
-  onChange(a, b) {
+  onChange(s, e) {
     const item = this.state.view.itemsAdded
-    console.log('added item', item)
+    let index = 0
+    console.log('item index', item, item.length, item[item.length-1])
+    console.log('s and e', s, e)
+  }
+
+  onScroll(event) {
+    const top = this.scrollY;
+    localStorage.setItem('pos', top);
   }
 
   onInitialized(s, e) {
+    const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
+    const filter_panel = new FilterPanel('#filterPanel', {
+        filter: filter,
+        placeholder: 'Active Filters'
+    });
 
-    return new FlexGridFilter(s); // add a FlexGridFilter to it
+    const theColumnPicker = new ListBox('#theColumnPicker', {
+      itemsSource: s.columns,
+      checkedMemberPath: 'visible',
+      displayMemberPath: 'header',
+      lostFocus: () => {
+        hidePopup(theColumnPicker.hostElement);
+      }
+    })
+
+    let ref = s.hostElement.querySelector('.wj-topleft');
+    ref.addEventListener('mousedown', function (e) {
+      if (hasClass(e.target, 'column-picker-icon')) {
+        showPopup(theColumnPicker.hostElement, ref, false, true, false);
+        theColumnPicker.focus();
+        e.preventDefault();
+      }
+    });
+    return filter_panel
   }
 
   getUpdatedItem(item) {
@@ -118,7 +154,6 @@ export default class Panel extends React.Component {
     const { row, col } = e;
     let item = {...s.rows[row].dataItem};
     if (!this.isRowEmpty(item)) {
-      console.log('e.cacel', e.cancel);
       s.finishEditing()
       let item_id = item['id'];
       if (!item_id) {
@@ -129,7 +164,6 @@ export default class Panel extends React.Component {
       updates['/contacts/' + item_id ] = updated_item;
       firebase.ref().update(updates);
     }
-
   }
 
   deleteRows(rows = []) {
@@ -158,49 +192,64 @@ export default class Panel extends React.Component {
     }
     return false
   }
+  updatedView(s, e) {
+    let nPos = localStorage.getItem("pos");
+    if (nPos) {
+      window.scrollTo(0, nPos);
+    }
+  }
+  formatItem(s, e) {
+    if (e.panel == s.topLeftCells) {
+      e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
+    }
+  }
   render() {
     return (
       <div>
         <Header tab='contacts'/>
         <div className='container'>
           <div className="row">
-          <div className='col-md-12'>
-            <span className='table_header'>Contacts</span>
-            {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
-            <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-            <GroupPanel
-              id="thePanel"
-              placeholder="Drag columns here to create Groups"
-              className='clearfix mb10 text-center br-4'
-            />
-
-            <wjGrid.FlexGrid
-              id ='theGrid'
-              autoGenerateColumns={false}
-              newRowAtTop={false}
-              columns={[
-                  { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-                  { header: 'Name', binding: 'name', width: '1*', isRequired: true },
-                  { header: 'Type', binding: 'type', dataMap: new DataMap(this.getContactTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
-                  { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
-                  { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
-              ]}
-              cellEditEnded={this.onCellEditEnded}
-              showDropDown={true}
-              itemsSource={this.state.view}
-              initialized={ this.onInitialized }
-              // cellEditEnding={this.onChange}
-              allowAddNew={true}
-              onRowAdded={this.onChange}
-            />
-            {
-              this.isLongList() &&
-              <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
-              <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
-            }
-          </div>
+            <div className='col-md-12'>
+              <span className='table_header'>Contacts</span>
+              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
+            </div>
           </div>
         </div>
+        <div id="filterPanel"></div>
+        <GroupPanel
+          id="thePanel"
+          placeholder="Drag columns here to create Groups"
+          className='clearfix mb10 text-center br-4'
+        />
+        <wjGrid.FlexGrid
+          id ='theGrid'
+          autoGenerateColumns={false}
+          newRowAtTop={false}
+          columns={[
+              { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
+              { header: 'Name', binding: 'name', width: '1*', isRequired: true },
+              { header: 'Type', binding: 'type', dataMap: new DataMap(this.getContactTypes(), 'key', 'name'), width: '1.2*', isRequired: true },
+              { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true },
+              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
+          ]}
+          cellEditEnded={this.onCellEditEnded}
+          showDropDown={true}
+          itemsSource={this.state.view}
+          initialized={ this.onInitialized }
+          allowAddNew={true}
+          onRowAdded={this.onChange}
+          updatedView={this.updatedView}
+          formatItem={this.formatItem}
+        />
+        <div style={{display : 'none'}}>
+          <div id="theColumnPicker" className="column-picker"></div>
+        </div>
+        {
+          this.isLongList() &&
+          <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
+          <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
+        }
       </div>
     )
   }

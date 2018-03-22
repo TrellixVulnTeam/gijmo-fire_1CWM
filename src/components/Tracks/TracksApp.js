@@ -132,6 +132,7 @@ export default class Panel extends React.Component {
     const song_slug = songs[item['song']] ? songs[item['song']]['filename'] : ''
     const event_slug = events[item['event']] ? events[item['event']]['filename'] : ''
     deep_item['filename'] = event_slug + '_' + slugify(deep_item['order'] ? deep_item['order'] : '') + '_' + song_slug
+    deep_item['order'] = parseInt(deep_item['order'])
     return deep_item
   }
 
@@ -243,7 +244,13 @@ export default class Panel extends React.Component {
               <span className='table_header'>Tracks</span>
               <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
               {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
-              {this.getGrids()}
+            </div>
+          </div>
+        </div>
+        {this.getGrids()}
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
               {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
               {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
             </div>

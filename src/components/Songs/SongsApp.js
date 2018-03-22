@@ -17,7 +17,6 @@ export default class Panel extends React.Component {
     this.onInitialized = this.onInitialized.bind(this)
     this.onCellEditEnded = this.onCellEditEnded.bind(this)
     this.deleteSelected = this.deleteSelected.bind(this)
-    this.deselectEverything = this.deselectEverything.bind(this)
     this.onClickAddRow = this.onClickAddRow.bind(this)
     // get initial state
     this.state = {
@@ -36,11 +35,6 @@ export default class Panel extends React.Component {
     })
   }
 
-  deselectEverything() {
-    // if (this.state.view.moveCurrentToPosition) {
-    //   this.state.view.moveCurrentToPosition(-1)
-    // }
-  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
       this.store_ref = firebase.ref().child('songs');
@@ -51,8 +45,6 @@ export default class Panel extends React.Component {
         view.trackChanges = true;
         this.setState({
           view
-        }, () => {
-          this.deselectEverything()
         })
       })
       const grid = Control.getControl(document.getElementById('theGrid'));
@@ -154,27 +146,33 @@ export default class Panel extends React.Component {
               <span className='table_header'>Songs</span>
               <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
               <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>
-              <GroupPanel
-                id="thePanel"
-                placeholder="Drag columns here to create Groups"
-                className='clearfix mb10 text-center br-4'
-              />
+            </div>
+          </div>
+        </div>
+        <GroupPanel
+          id="thePanel"
+          placeholder="Drag columns here to create Groups"
+          className='clearfix mb10 text-center br-4'
+        />
 
-              <wjGrid.FlexGrid
-                id ='theGrid'
-                autoGenerateColumns={false}
-                columns={[
-                    { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-                    { header: 'Name', binding: 'name', width: '1*', isRequired: true },
-                    { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true },
-                    { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
-                ]}
-                cellEditEnded={this.onCellEditEnded}
-                showDropDown={true}
-                itemsSource={this.state.view}
-                initialized={ this.onInitialized }
-                allowAddNew={true}
-              />
+        <wjGrid.FlexGrid
+          id ='theGrid'
+          autoGenerateColumns={false}
+          columns={[
+              { header: 'ID', binding: 'id', width: '.7*', isReadOnly: true },
+              { header: 'Name', binding: 'name', width: '1*', isRequired: true },
+              { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true },
+              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
+          ]}
+          cellEditEnded={this.onCellEditEnded}
+          showDropDown={true}
+          itemsSource={this.state.view}
+          initialized={ this.onInitialized }
+          allowAddNew={true}
+        />
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
               <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>
               <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
             </div>

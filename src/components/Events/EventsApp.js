@@ -43,7 +43,6 @@ export default class Panel extends React.Component {
   }
 
   getProcessedDropDownItem(item_list) {
-    console.log('item_list', item_list);
     return Object.keys(item_list).map((id) => {
       const { name = '' } = item_list[id]
       return {
@@ -117,7 +116,6 @@ export default class Panel extends React.Component {
 
   onChange(a, b) {
     const item = this.state.view.itemsAdded
-    console.log('added item', item)
   }
 
   onInitialized(s, e) {
@@ -189,7 +187,6 @@ export default class Panel extends React.Component {
   }
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
-    console.log('nPos', nPos)
     if (nPos) {
       window.scrollTo(0, nPos);
     }
@@ -235,14 +232,17 @@ export default class Panel extends React.Component {
           <div className="row">
             <div className='col-md-12'>
               <span className='table_header'>Events</span>
-              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
               <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-              {this.getGrids()}
-              {
-                this.isLongList() &&
-                <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button> &&
-                <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>
-              }
+              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+            </div>
+          </div>
+        </div>
+        {this.getGrids()}
+        <div className='container'>
+          <div className="row">
+            <div className='col-md-12'>
+              {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+              {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
             </div>
           </div>
         </div>
