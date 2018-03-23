@@ -61,7 +61,6 @@ export default class Panel extends React.Component {
     dropdown_keys.forEach((keyname) => {
       this.store_ref = firebase.ref().child(keyname);
       this.store_ref.on('value', (snapshot) => {
-        console.log('this.stte.view', this.state.flex)
         const response_obj = snapshot.val();
         const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         this.setState({
@@ -152,9 +151,6 @@ export default class Panel extends React.Component {
         e.preventDefault();
       }
     });
-    this.setState({
-      flex: s
-    })
     return filter_panel
   }
 
@@ -273,6 +269,7 @@ export default class Panel extends React.Component {
   }
   getGrids() {
     const { events_dropdown = [], songs_dropdown = [] } = this.state;
+    console.log('songs_dropdown', songs_dropdown)
     if (events_dropdown == null || songs_dropdown == null) {
       return this.getLoader()
     }
@@ -290,6 +287,8 @@ export default class Panel extends React.Component {
             { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
             { header: 'Set', binding: 'set', width: '.6*', dataMap: this.getSetsOptions(), isRequired: true },
             { header: 'Order', binding: 'order', width: '.6*', isRequired: true },
+            { header: 'Song', binding: 'song', width: '1.2*', dataMap: new DataMap(songs_dropdown, 'key', 'name'), isRequired: true },
+            { header: 'Event', binding: 'event', dataMap: new DataMap(events_dropdown, 'key', 'name'), width: '1*' },
             { header: 'filename', binding: 'filename', width: '1*', isReadOnly: true },
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
