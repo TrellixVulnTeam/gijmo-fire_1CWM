@@ -123,7 +123,7 @@ export default class Panel extends React.Component {
     delete deep_item['id']
     const website_slug = websites[item['website']] ? websites[item['website']]['filename'] : ''
     const event_slug = events[item['event']] ? events[item['event']]['filename'] : ''
-    const filename = slugify(deep_item['name'] ? deep_item['name'] : '') 
+    const filename = slugify(deep_item['name'] ? deep_item['name'] : '')
     deep_item['filename'] = filename;
     return deep_item
   }
@@ -173,6 +173,7 @@ export default class Panel extends React.Component {
   setupGrouping() {
     const grid = Control.getControl(document.getElementById('theGrid'));
     const panel = Control.getControl(document.getElementById('thePanel'));
+    panel.hideGroupedColumns = false;
     panel.grid = grid;
   }
   getSetsOptions() {

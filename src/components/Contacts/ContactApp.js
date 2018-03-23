@@ -23,6 +23,8 @@ export default class ContactApp extends React.Component {
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
     this.updatedView = this.updatedView.bind(this)
+    this.saveItem = this.saveItem.bind(this)
+    this.deselectEverything = this.deselectEverything.bind(this)
     // get initial state
     this.state = {
       contacts: [],
@@ -50,10 +52,13 @@ export default class ContactApp extends React.Component {
       view.trackChanges = true;
       this.setState({
         view
+      }, () => {
+        this.deselectEverything()
       })
     })
     window.addEventListener("scroll", this.onScroll, false);
   }
+
   setupGrouping() {
     const grouping_successful = false
     let interval = null
@@ -61,6 +66,7 @@ export default class ContactApp extends React.Component {
       try {
         const grid = Control.getControl(document.getElementById('theGrid'));
         const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.hideGroupedColumns = false;
         panel.grid = grid;
       } catch (e) {
         setTimeout(mapGrouping, 1000)
@@ -102,8 +108,12 @@ export default class ContactApp extends React.Component {
   }
 
   onChange(s, e) {
-    const item = this.state.view.itemsAdded
-    let index = 0
+    const items = this.state.view.itemsAdded
+    let p = Promise.resolve()
+    for (let i = 0; i < items.length; i++) {
+      items[i].id = 'contact-'+mongoObjectId()
+      p = p.then(this.saveItem(items[i]))
+    }
   }
 
   onScroll(event) {
@@ -151,11 +161,8 @@ export default class ContactApp extends React.Component {
     return !Object.keys(contact).length
   }
 
-  onCellEditEnded(s, e) {
-    const { row, col } = e;
-    let item = {...s.rows[row].dataItem};
+  saveItem(item = {}) {
     if (!this.isRowEmpty(item)) {
-      s.finishEditing()
       let item_id = item['id'];
       if (!item_id) {
         item_id = 'contact-'+mongoObjectId()
@@ -163,10 +170,21 @@ export default class ContactApp extends React.Component {
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
       updates['/contacts/' + item_id ] = updated_item;
-      firebase.ref().update(updates);
+      return firebase.ref().update(updates)
     }
+    return Promise.resolve()
   }
 
+  onCellEditEnded(s, e) {
+    const { row, col } = e;
+    let item = {...s.rows[row].dataItem};
+    this.saveItem(item)
+  }
+ deselectEverything() {
+    if (this.state.view.moveCurrentToPosition) {
+      this.state.view.moveCurrentToPosition(-1)
+    }
+  }
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(contact => {
@@ -239,9 +257,9 @@ export default class ContactApp extends React.Component {
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}
-          onRowAdded={this.onChange}
           updatedView={this.updatedView}
           formatItem={this.formatItem}
+          onPasted={this.onChange}
         />
       </div>
     )

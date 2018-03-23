@@ -22,6 +22,8 @@ export default class Panel extends React.Component {
     this.onClickAddRow = this.onClickAddRow.bind(this)
     this.isLongList = this.isLongList.bind(this)
     this.updatedView = this.updatedView.bind(this)
+    this.saveItem = this.saveItem.bind(this)
+    this.onChange = this.onChange.bind(this)
     // get initial state
     this.state = {
       songs: [],
@@ -44,6 +46,10 @@ export default class Panel extends React.Component {
     }
     return false
   }
+  onScroll(event) {
+    const top = this.scrollY;
+    localStorage.setItem('pos', top);
+  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
     this.store_ref = firebase.ref().child('songs');
@@ -56,8 +62,16 @@ export default class Panel extends React.Component {
         view
       })
     })
+    window.addEventListener("scroll", this.onScroll, false);
   }
-
+  onChange(s, e) {
+    const items = this.state.view.itemsAdded
+    let p = Promise.resolve()
+    for (let i = 0; i < items.length; i++) {
+      items[i].id = 'song-'+mongoObjectId()
+      p = p.then(this.saveItem(items[i]))
+    }
+  }
   componentDidUpdate(prevProps, prevState) {
     if (this.state.view.moveCurrentToLast) {
       this.state.view.moveCurrentToLast()
@@ -130,11 +144,8 @@ export default class Panel extends React.Component {
     return !Object.keys(song).length
   }
 
-  onCellEditEnded(s, e) {
-    const { row, col } = e;
-    let item = {...s.rows[row].dataItem};
+  saveItem(item = {}) {
     if (!this.isRowEmpty(item)) {
-      s.finishEditing()
       let item_id = item['id'];
       if (!item_id) {
         item_id = 'song-'+mongoObjectId()
@@ -142,9 +153,15 @@ export default class Panel extends React.Component {
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
       updates['/songs/' + item_id ] = updated_item;
-      firebase.ref().update(updates);
+      return firebase.ref().update(updates)
     }
+    return Promise.resolve()
+  }
 
+  onCellEditEnded(s, e) {
+    const { row, col } = e;
+    let item = {...s.rows[row].dataItem};
+    this.saveItem(item)
   }
 
   deleteRows(rows = []) {
@@ -172,6 +189,7 @@ export default class Panel extends React.Component {
       try {
         const grid = Control.getControl(document.getElementById('theGrid'));
         const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.hideGroupedColumns = false;
         panel.grid = grid;
       } catch (e) {
         setTimeout(mapGrouping, 1000)
@@ -225,6 +243,7 @@ export default class Panel extends React.Component {
           allowAddNew={true}
           formatItem={this.formatItem}
           updatedView={this.updatedView}
+          onPasted={this.onChange}
         />
       </div>
     )

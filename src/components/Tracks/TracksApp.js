@@ -24,6 +24,9 @@ export default class Panel extends React.Component {
     this.isLongList = this.isLongList.bind(this)
     this.getUpdatedItem = this.getUpdatedItem.bind(this)
     this.updatedView = this.updatedView.bind(this)
+    this.onPasted = this.onPasted.bind(this)
+    this.saveItem = this.saveItem.bind(this)
+
     // get initial state
     this.state = {
       events: [],
@@ -56,8 +59,9 @@ export default class Panel extends React.Component {
 
   setupDropdowns(dropdown_keys = []) {
     dropdown_keys.forEach((keyname) => {
-      this.store_keyname_ref = firebase.ref().child(keyname);
-      this.store_keyname_ref.on('value', (snapshot) => {
+      this.store_ref = firebase.ref().child(keyname);
+      this.store_ref.on('value', (snapshot) => {
+        console.log('this.stte.view', this.state.flex)
         const response_obj = snapshot.val();
         const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         this.setState({
@@ -148,6 +152,9 @@ export default class Panel extends React.Component {
         e.preventDefault();
       }
     });
+    this.setState({
+      flex: s
+    })
     return filter_panel
   }
 
@@ -176,12 +183,17 @@ export default class Panel extends React.Component {
     }
   }
 
-  onCellEditEnded(s, e) {
-    const { row, col } = e;
-    let item = {...s.rows[row].dataItem};
-    console.log('item', item)
+  onPasted(s, e) {
+    const items = this.state.view.itemsAdded
+    let p = Promise.resolve()
+    for (let i = 0; i < items.length; i++) {
+      items[i].id = 'track-'+mongoObjectId()
+      p = p.then(this.saveItem(items[i]))
+    }
+  }
+
+  saveItem(item = {}) {
     if (!this.isRowEmpty(item)) {
-      s.finishEditing()
       let item_id = item['id'];
       if (!item_id) {
         item_id = 'track-'+mongoObjectId()
@@ -189,10 +201,17 @@ export default class Panel extends React.Component {
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
       updates['/tracks/' + item_id ] = updated_item;
-      console.log('/tracks/' + item_id, updated_item)
-      firebase.ref().update(updates);
+      return firebase.ref().update(updates)
     }
+    return Promise.resolve()
   }
+
+  onCellEditEnded(s, e) {
+    const { row, col } = e;
+    let item = {...s.rows[row].dataItem};
+    this.saveItem(item)
+  }
+
 
   deleteRows(rows = []) {
     const updates = {}
@@ -214,6 +233,7 @@ export default class Panel extends React.Component {
       try {
         const grid = Control.getControl(document.getElementById('theGrid'));
         const panel = Control.getControl(document.getElementById('thePanel'));
+        panel.hideGroupedColumns = false;
         panel.grid = grid;
       } catch (e) {
         setTimeout(mapGrouping, 1000)
@@ -256,7 +276,7 @@ export default class Panel extends React.Component {
     if (events_dropdown == null || songs_dropdown == null) {
       return this.getLoader()
     }
-    window.setTimeout(this.setupGrouping, 2000)
+
     return (
       <div>
         <GroupPanel
@@ -270,8 +290,6 @@ export default class Panel extends React.Component {
             { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
             { header: 'Set', binding: 'set', width: '.6*', dataMap: this.getSetsOptions(), isRequired: true },
             { header: 'Order', binding: 'order', width: '.6*', isRequired: true },
-            { header: 'Song', binding: 'song', width: '1.2*', dataMap: new DataMap(songs_dropdown, 'key', 'name'), isRequired: true },
-            { header: 'Event', binding: 'event', dataMap: new DataMap(events_dropdown, 'key', 'name'), width: '1*' },
             { header: 'filename', binding: 'filename', width: '1*', isReadOnly: true },
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
@@ -281,6 +299,7 @@ export default class Panel extends React.Component {
           allowAddNew={true}
           updatedView={this.updatedView}
           formatItem={this.formatItem}
+          onPasted={this.onPasted}
         />
       </div>
     )
