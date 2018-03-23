@@ -60,14 +60,22 @@ export default class Panel extends React.Component {
 
   setupDropdowns(dropdown_keys = []) {
     dropdown_keys.forEach((keyname) => {
-      this.store_contacts_ref = firebase.ref().child(keyname);
-      this.store_contacts_ref.on('value', (snapshot) => {
-        const events_obj = snapshot.val();
-        const dropdown_items = this.getProcessedDropDownItem(events_obj);
+      this.store_ref = firebase.ref().child(keyname + 's'); // Root keys are plural, eg : songs, events
+      this.store_ref.on('value', (snapshot) => {
+        const response_obj = snapshot.val();
+        const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
+        const flex = Control.getControl(document.getElementById('theGrid'));
+        console.log('flex is ', flex)
+        const columns = flex.columns;
+        columns.forEach((column) => {
+          const binding = column._binding._key
+          if (binding == keyname) {
+            console.log('column', dropdown_items)
+            column.dataMap = new DataMap(dropdown_items, 'key', 'name')
+          }
+        })
         this.setState({
-          [keyname + '_dropdown']: dropdown_items,
-          [keyname]: events_obj,
-          new_mongid: mongoObjectId()
+          [keyname + 's']: response_obj
         })
       })
     })
@@ -96,7 +104,7 @@ export default class Panel extends React.Component {
         this.deselectEverything()
       })
     })
-    this.setupDropdowns(['contacts', 'venues'])
+    this.setupDropdowns(['contact', 'venue'])
     window.addEventListener("scroll", this.onScroll, false);
   }
 
@@ -264,9 +272,6 @@ export default class Panel extends React.Component {
   }
   getGrids() {
     const { contacts_dropdown, venues_dropdown } = this.state;
-    if (contacts_dropdown == null || venues_dropdown == null) {
-      return this.getLoader()
-    }
     return (
       <div >
         <GroupPanel
@@ -279,8 +284,8 @@ export default class Panel extends React.Component {
           columns={[
             { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
             { header: 'Type', binding: 'type', dataMap: new DataMap(this.getEventTypes(), 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Contact', binding: 'contact',  showDropDown: true, dataMap: new DataMap(contacts_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Venue', binding: 'venue',  showDropDown: true, dataMap: new DataMap(venues_dropdown, 'key', 'name'), width: '1.2*', isRequired: true },
+            { header: 'Contact', binding: 'contact', width: '1.2*', isRequired: true },
+            { header: 'Venue', binding: 'venue', width: '1.2*', isRequired: true },
             { header: 'Venue City', binding: 'venueCity', width: '1*' },
 
             { header: 'Date', binding: 'date', width: '1*' },

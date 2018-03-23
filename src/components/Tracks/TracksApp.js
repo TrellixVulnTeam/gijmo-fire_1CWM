@@ -26,6 +26,7 @@ export default class Panel extends React.Component {
     this.updatedView = this.updatedView.bind(this)
     this.onPasted = this.onPasted.bind(this)
     this.saveItem = this.saveItem.bind(this)
+    this.setupDataMaps = this.setupDataMaps.bind(this)
 
     // get initial state
     this.state = {
@@ -52,23 +53,29 @@ export default class Panel extends React.Component {
       const { filename = '', name = '' } = item_list[id]
       return {
         key: id,
-        name: keyname == 'events' ? filename : name
+        name: keyname == 'event' ? filename : name
       }
     })
   }
 
   setupDropdowns(dropdown_keys = []) {
     dropdown_keys.forEach((keyname) => {
-      this.store_ref = firebase.ref().child(keyname);
+      this.store_ref = firebase.ref().child(keyname + 's'); // Root keys are plural, eg : songs, events
       this.store_ref.on('value', (snapshot) => {
         const response_obj = snapshot.val();
         const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
+        const flex = Control.getControl(document.getElementById('theGrid'));
+        console.log('flex is ', flex)
+        const columns = flex.columns;
+        columns.forEach((column) => {
+          const binding = column._binding._key
+          if (binding == keyname) {
+            console.log('column', dropdown_items)
+            column.dataMap = new DataMap(dropdown_items, 'key', 'name')
+          }
+        })
         this.setState({
-          [keyname + '_dropdown']: dropdown_items,
-          [keyname]: response_obj,
-          new_mongid: mongoObjectId()
-        }, () => {
-          this.deselectEverything()
+          [keyname + 's']: response_obj
         })
       })
     })
@@ -97,7 +104,7 @@ export default class Panel extends React.Component {
         this.deselectEverything()
       })
     })
-    this.setupDropdowns(['songs', 'events'])
+    this.setupDropdowns(['song', 'event'])
     window.addEventListener("scroll", this.onScroll, false);
   }
 
@@ -221,7 +228,9 @@ export default class Panel extends React.Component {
     const selected_rows = this.state.view.items.filter(event => event['sel_for_deletion'])
     this.deleteRows(selected_rows)
   }
+  setupDataMaps(flex) {
 
+  }
   setupGrouping() {
     const grouping_successful = false
     let interval = null
@@ -231,6 +240,7 @@ export default class Panel extends React.Component {
         const panel = Control.getControl(document.getElementById('thePanel'));
         panel.hideGroupedColumns = false;
         panel.grid = grid;
+        this.setupDataMaps(grid)
       } catch (e) {
         setTimeout(mapGrouping, 1000)
       }
@@ -268,12 +278,6 @@ export default class Panel extends React.Component {
     )
   }
   getGrids() {
-    const { events_dropdown = [], songs_dropdown = [] } = this.state;
-    console.log('songs_dropdown', songs_dropdown)
-    if (events_dropdown == null || songs_dropdown == null) {
-      return this.getLoader()
-    }
-
     return (
       <div>
         <GroupPanel
@@ -287,8 +291,8 @@ export default class Panel extends React.Component {
             { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
             { header: 'Set', binding: 'set', width: '.6*', dataMap: this.getSetsOptions(), isRequired: true },
             { header: 'Order', binding: 'order', width: '.6*', isRequired: true },
-            { header: 'Song', binding: 'song', width: '1.2*', dataMap: new DataMap(songs_dropdown, 'key', 'name'), isRequired: true },
-            { header: 'Event', binding: 'event', dataMap: new DataMap(events_dropdown, 'key', 'name'), width: '1*' },
+            { header: 'Song', binding: 'song', width: '1.2*', isRequired: true },
+            { header: 'Event', binding: 'event', width: '1*' },
             { header: 'filename', binding: 'filename', width: '1*', isReadOnly: true },
             { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
           ]}
