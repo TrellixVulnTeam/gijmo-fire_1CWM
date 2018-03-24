@@ -42,7 +42,6 @@ export default class Panel extends React.Component {
       return {
         id: key,
         sel_for_deletion: false,
-        link: 'https://google.com/',
         ...events_obj[key],
       }
     })
@@ -65,12 +64,10 @@ export default class Panel extends React.Component {
         const response_obj = snapshot.val();
         const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         const flex = Control.getControl(document.getElementById('theGrid'));
-        console.log('flex is ', flex)
         const columns = flex.columns;
         columns.forEach((column) => {
           const binding = column._binding._key
           if (binding == keyname) {
-            console.log('column', dropdown_items)
             column.dataMap = new DataMap(dropdown_items, 'key', 'name')
           }
         })
@@ -282,16 +279,16 @@ export default class Panel extends React.Component {
           id ='theGrid'
           autoGenerateColumns={false}
           columns={[
-            { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-            { header: 'Type', binding: 'type', dataMap: new DataMap(this.getEventTypes(), 'key', 'name'), width: '1.2*', isRequired: true },
-            { header: 'Contact', binding: 'contact', width: '1.2*', isRequired: true },
-            { header: 'Venue', binding: 'venue', width: '1.2*', isRequired: true },
-            { header: 'Venue City', binding: 'venueCity', width: '1*' },
+            { header: 'ID', binding: 'id', width: '1.3*', minWidth: 250, isReadOnly: true },
+            { header: 'Type', binding: 'type', dataMap: new DataMap(this.getEventTypes(), 'key', 'name'), width: '1.2*', minWidth: 150,isRequired: true },
+            { header: 'Contact', binding: 'contact', width: '1.2*', minWidth: 200, isRequired: true },
+            { header: 'Venue', binding: 'venue', width: '1.2*', minWidth: 200, isRequired: true },
+            { header: 'Venue City', binding: 'venueCity', width: '1*', minWidth: 200 },
 
-            { header: 'Date', binding: 'date', width: '1*' },
-            { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
-            { header: 'Link', binding: 'link', width: '1*', isReadOnly: true},
-            { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
+            { header: 'Date', binding: 'date', width: '1*', minWidth: 100 },
+            { header: 'Filename', binding: 'filename', width: '1*', minWidth: 250, isReadOnly: true},
+            { header: 'Link', binding: 'link', width: '1*', minWidth: 100, isReadOnly: true},
+            { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' , minWidth: 80},
           ]}
           cellEditEnded={this.onCellEditEnded}
           itemsSource={this.state.view}

@@ -65,18 +65,18 @@ export default class Panel extends React.Component {
         const response_obj = snapshot.val();
         const dropdown_items = this.getProcessedDropDownItem(response_obj, keyname);
         const flex = Control.getControl(document.getElementById('theGrid'));
-        console.log('flex is ', flex)
-        const columns = flex.columns;
-        columns.forEach((column) => {
-          const binding = column._binding._key
-          if (binding == keyname) {
-            console.log('column', dropdown_items)
-            column.dataMap = new DataMap(dropdown_items, 'key', 'name')
-          }
-        })
-        this.setState({
-          [keyname + 's']: response_obj
-        })
+        if (flex) {
+          const columns = flex.columns;
+          columns.forEach((column) => {
+            const binding = column._binding._key
+            if (binding == keyname) {
+              column.dataMap = new DataMap(dropdown_items, 'key', 'name')
+            }
+          })
+          this.setState({
+            [keyname + 's']: response_obj
+          })
+        }
       })
     })
   }
@@ -288,13 +288,13 @@ export default class Panel extends React.Component {
           id ='theGrid'
           autoGenerateColumns={false}
           columns={[
-            { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-            { header: 'Set', binding: 'set', width: '.6*', dataMap: this.getSetsOptions(), isRequired: true },
-            { header: 'Order', binding: 'order', width: '.6*', isRequired: true },
-            { header: 'Song', binding: 'song', width: '1.2*', isRequired: true },
-            { header: 'Event', binding: 'event', width: '1*' },
-            { header: 'filename', binding: 'filename', width: '1*', isReadOnly: true },
-            { header: 'Delete', binding: 'sel_for_deletion', width: '.5*' },
+            { header: 'ID', binding: 'id', width: '1.3*', minWidth: 250, isReadOnly: true },
+            { header: 'Set', binding: 'set', width: '.4*', minWidth: 100, dataMap: this.getSetsOptions(), isRequired: true },
+            { header: 'Order', binding: 'order', width: '.4*', minWidth: 100, isRequired: true },
+            { header: 'Song', binding: 'song', width: '1.2*', minWidth: 250, isRequired: true },
+            { header: 'Event', binding: 'event', width: '1*', minWidth: 250, },
+            { header: 'filename', binding: 'filename', width: '1*', minWidth: 250, isReadOnly: true },
+            { header: 'Delete', binding: 'sel_for_deletion', width: '.4*', minWidth: 80 },
           ]}
           cellEditEnded={this.onCellEditEnded}
           itemsSource={this.state.view}

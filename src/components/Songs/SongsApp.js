@@ -231,10 +231,10 @@ export default class Panel extends React.Component {
           id ='theGrid'
           autoGenerateColumns={false}
           columns={[
-              { header: 'ID', binding: 'id', width: '.7*', isReadOnly: true },
-              { header: 'Name', binding: 'name', width: '1*', isRequired: true },
-              { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true },
-              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
+              { header: 'ID', binding: 'id', width: '.7*', minWidth: 250, isReadOnly: true },
+              { header: 'Name', binding: 'name', width: '1*', minWidth: 250, isRequired: true },
+              { header: 'Filename', binding: 'filename', width: '1*', minWidth: 250, isReadOnly: true },
+              { header: 'Delete', binding: 'sel_for_deletion', width: '.4*', minWidth: 80},
           ]}
           cellEditEnded={this.onCellEditEnded}
           showDropDown={true}

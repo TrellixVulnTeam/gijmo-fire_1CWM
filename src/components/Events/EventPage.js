@@ -18,6 +18,7 @@ class EventPage extends React.Component {
     this.renderTracks = this.renderTracks.bind(this);
     this.setupDropdowns = this.setupDropdowns.bind(this)
   }
+
   setupDropdowns(dropdown_keys = []) {
     dropdown_keys.forEach((keyname) => {
       this.store_contacts_ref = firebase.ref().child(keyname);
@@ -29,6 +30,7 @@ class EventPage extends React.Component {
       })
     })
   }
+
   componentDidMount() {
     this.setupDropdowns(['events', 'contacts', 'venues', 'tracks', 'songs'])
   }

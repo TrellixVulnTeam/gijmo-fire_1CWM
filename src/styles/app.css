@@ -22,6 +22,9 @@
 .mr10 {
   margin-right: 10px;
 }
+.ml10 {
+  margin-left: 10px;
+}
 .table_header {
   font-size: 30px;
   vertical-align: text-top;

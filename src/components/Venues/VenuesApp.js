@@ -125,7 +125,6 @@ export default class Panel extends React.Component {
 
   onChange(a, b) {
     const item = this.state.view.itemsAdded
-    console.log('added item', item)
   }
 
   onInitialized(s, e) {
@@ -244,13 +243,13 @@ export default class Panel extends React.Component {
           autoGenerateColumns={false}
           newRowAtTop={false}
           columns={[
-              { header: 'ID', binding: 'id', width: '1.3*', isReadOnly: true },
-              { header: 'Name', binding: 'name', width: '1*', isRequired: true },
-              { header: 'City', binding: 'city', width: '1*', isRequired: true },
-              { header: 'State', binding: 'state', width: '1*', isRequired: true },
-              { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '1.2*', isRequired: true},
-              { header: 'Filename', binding: 'filename', width: '1*', isReadOnly: true},
-              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*'},
+              { header: 'ID', binding: 'id', width: '1.3*', minWidth: 250, isReadOnly: true },
+              { header: 'Name', binding: 'name', width: '1*', minWidth: 250, isRequired: true },
+              { header: 'City', binding: 'city', width: '1*', minWidth: 200, isRequired: true },
+              { header: 'State', binding: 'state', width: '1*', minWidth: 150, isRequired: true },
+              { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '.8*', minWidth: 150, isRequired: true},
+              { header: 'Filename', binding: 'filename', width: '1*', minWidth: 150, isReadOnly: true},
+              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*', minWidth: 80},
           ]}
           cellEditEnded={this.onCellEditEnded}
           showDropDown={true}
