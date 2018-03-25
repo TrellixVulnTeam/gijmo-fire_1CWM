@@ -19,15 +19,25 @@
 .mt10 {
   margin-top: 10px;
 }
+.mt5 {
+  margin-top: 5px;
+}
 .mr10 {
   margin-right: 10px;
 }
 .ml10 {
   margin-left: 10px;
 }
+.ml15 {
+  margin-left: 15px!important;
+}
+.mr15 {
+  margin-right: 15px;
+}
 .table_header {
   font-size: 30px;
-  vertical-align: text-top;
+  vertical-align: sub;
+  margin-left: 10px;
 }
 .br-4 {
   border-radius: 4px;
@@ -61,4 +71,26 @@
 .wj-filterpanel .wj-cell {
   max-width: initial!important;
   overflow: initial!important;
+}
+.btn:focus {
+  outline: none;
+}
+.view_dropdown {
+  margin-left: 15px!important;
+  margin-bottom: 7px;
+}
+.dropdown-list-items {
+  /*margin-top: 15px;*/
+}
+.list-group-wrapper {
+  overflow-y: scroll;
+  max-height: 280px;
+  border-color: #e7e7e7;
+  word-wrap: break-word;
+}
+.list-group-item {
+  cursor: pointer;
+}
+.list-group-item:hover {
+  background-color: #f4f4f4
 }

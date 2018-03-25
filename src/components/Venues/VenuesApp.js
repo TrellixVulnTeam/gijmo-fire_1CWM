@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './../common/Header';
 import { FilterPanel } from './../common/FilterPanel';
+import ViewsDropdown from './../common/ViewsDropdown'
 import firebase from '../../helpers/base';
 import mongoObjectId from '../../helpers/mongoId';
 import { slugify } from '../../helpers';
@@ -9,8 +10,9 @@ import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
 import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control, hidePopup, hasClass, showPopup } from 'wijmo/wijmo'
+import { CollectionView, Control, hidePopup, hasClass, showPopup, PropertyGroupDescription } from 'wijmo/wijmo'
 
+const TABLE_KEY = 'venues'
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -26,6 +28,15 @@ export default class Panel extends React.Component {
     this.updatedView = this.updatedView.bind(this)
     this.onPasted = this.onPasted.bind(this)
     this.saveItem = this.saveItem.bind(this)
+    this.saveState = this.saveState.bind(this)
+    this.getTableState = this.getTableState.bind(this)
+    this.retrieveState = this.retrieveState.bind(this)
+    this.applySortDescriptions = this.applySortDescriptions.bind(this)
+    this.applyGroupDescriptions = this.applyGroupDescriptions.bind(this)
+    this.applyColumnLayout = this.applyColumnLayout.bind(this)
+    this.setupTableStateListener = this.setupTableStateListener.bind(this)
+    this.saveStatePromise = this.saveStatePromise.bind(this)
+    this.deleteView = this.deleteView.bind(this)
     // get initial state
     this.state = {
       venues: [],
@@ -39,6 +50,28 @@ export default class Panel extends React.Component {
       items[i].id = 'venue-'+mongoObjectId()
       p = p.then(this.saveItem(items[i]))
     }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    this.retrieveState()
+    this.setupDropdowns()
+  }
+
+  setupDropdowns() {
+    const dropdown_keys = ['type'];
+    dropdown_keys.forEach((keyname) => {
+      const dropdown_items = this.getVenueTypes();
+      const {flex} = this.state
+      if (flex) {
+        const columns = flex.columns;
+        columns.forEach((column) => {
+          const binding = column._binding._key
+          if (binding == keyname) {
+            column.dataMap = new DataMap(dropdown_items, 'key', 'name')
+          }
+        })
+      }
+    })
   }
   getProcessedVenues(venues_obj) {
     return Object.keys(venues_obj).map((key) => {
@@ -59,21 +92,43 @@ export default class Panel extends React.Component {
     const top = this.scrollY;
     localStorage.setItem('pos', top);
   }
+
+  setupTableStateListener() {
+    this.views_ref = firebase.ref().child('views').child('venues');
+    this.views_ref.on('value', (snapshot) => {
+      const views_data = snapshot.val();
+      const { allViews = {}, currentView = '' } = views_data ? views_data : {}
+      this.setState({
+        currentView,
+        viewState: allViews[currentView]['state']
+      }, () => {
+        this.retrieveState()
+      })
+    })
+    if ('onbeforeunload' in window) {
+      window.onbeforeunload = this.saveState
+    }
+  }
+  componentWillUnmount() {
+    this.saveState()
+    window.onbeforeunload = null
+  }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-      this.store_ref = firebase.ref().child('venues');
-      this.store_ref.on('value', (snapshot) => {
-        const venues_obj = snapshot.val();
-        const venues_list = this.getProcessedVenues(venues_obj);
-        const view = new CollectionView(venues_list);
-        view.trackChanges = true;
-        this.setState({
-          view
-        }, () => {
-          this.deselectEverything()
-        })
+    this.store_ref = firebase.ref().child('venues');
+    this.store_ref.on('value', (snapshot) => {
+      const venues_obj = snapshot.val();
+      const venues_list = this.getProcessedVenues(venues_obj);
+      const view = new CollectionView(venues_list);
+      view.trackChanges = true;
+      this.setState({
+        view
+      }, () => {
+        this.deselectEverything()
       })
-      window.addEventListener("scroll", this.onScroll, false);
+    })
+    this.setupTableStateListener()
+    window.addEventListener("scroll", this.onScroll, false);
   }
   setupGrouping() {
     const grouping_successful = false
@@ -151,6 +206,12 @@ export default class Panel extends React.Component {
         e.preventDefault();
       }
     });
+    this.setState({
+      flex: s,
+      filter: filter
+    }, () => {
+      this.setupDropdowns()
+    })
     return filter_panel
   }
 
@@ -226,6 +287,103 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+  getTableState() {
+    const { flex, filter } = this.state
+    if (flex && filter) {
+      const { columnLayout = {} } = this.state.flex
+      const { filterDefinition = {} } = this.state.filter
+      const { groupDescriptions, sortDescriptions } = this.getDescriptions(['group', 'sort'])
+      return {
+        columnLayout,
+        filterDefinition,
+        sortDescriptions,
+        groupDescriptions,
+      }
+    }
+    return null
+  }
+
+  // Gets group and sort description
+  getDescriptions(keys) {
+    const descriptions = {}
+    const { view } = this.state;
+    if (view) {
+      keys.map((key) => {
+        let desc = [];
+        const description = view[key + 'Descriptions'] ? view[key + 'Descriptions'] : {}
+        for (let group in description) {
+          if (description[group].propertyName)
+          desc.push(description[group].propertyName);
+        }
+        descriptions[key + 'Descriptions'] = desc
+      })
+    }
+    return descriptions
+  }
+
+  saveStatePromise() {
+    const table_state = this.getTableState()
+    const { currentView = '' } = this.state
+    if (currentView) {
+      const updates = {}
+      updates[`/views/venues/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
+    }
+    return Promise.resolve()
+  }
+
+  saveState() {
+    this.saveStatePromise()
+  }
+
+  retrieveState() {
+    const { viewState = '' } = this.state
+    if (viewState) {
+      const table_state = JSON.parse(viewState)
+      const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
+      this.applyColumnLayout(columnLayout)
+      this.applyFilters(filterDefinition)
+      this.applySortDescriptions(sortDescriptions)
+      this.applyGroupDescriptions(groupDescriptions)
+      this.setupDropdowns()
+    }
+  }
+
+  applyColumnLayout(columnLayout) {
+    const { flex } = this.state
+    if (columnLayout && flex) {
+      this.state.flex.columnLayout = columnLayout
+    }
+  }
+
+  applyFilters(filters) {
+    const { filter } = this.state
+    if (filters && filter) {
+      this.state.filter.filterDefinition = filters
+    }
+  }
+
+  applySortDescriptions(loadedSort) {
+    const { view, flex } = this.state
+    if (loadedSort && view && flex) {
+      this.state.view.sortDescriptions.clear();
+      for (var i = 0; i < loadedSort.length; i++) {
+        this.state.view.sortDescriptions.push(new PropertyGroupDescription(loadedSort[i]));
+      }
+      this.state.flex.refresh();
+    }
+  }
+
+  applyGroupDescriptions(loadedGroups) {
+    const { view, flex } = this.state
+    if (loadedGroups && view && flex) {
+      this.state.view.groupDescriptions.clear();
+      for (var i = 0; i < loadedGroups.length; i++) {
+        this.state.view.groupDescriptions.push(new PropertyGroupDescription(loadedGroups[i]));
+      }
+      this.state.flex.refresh();
+    }
+  }
   getGrids() {
     const { view } = this.state;
     if (view == null) {
@@ -243,19 +401,19 @@ export default class Panel extends React.Component {
           autoGenerateColumns={false}
           newRowAtTop={false}
           columns={[
-              { header: 'ID', binding: 'id', width: '1.3*', minWidth: 250, isReadOnly: true },
-              { header: 'Name', binding: 'name', width: '1*', minWidth: 250, isRequired: true },
-              { header: 'City', binding: 'city', width: '1*', minWidth: 200, isRequired: true },
-              { header: 'State', binding: 'state', width: '1*', minWidth: 150, isRequired: true },
-              { header: 'Type', binding: 'type', dataMap: new DataMap(this.getVenueTypes(), 'key', 'name'), width: '.8*', minWidth: 150, isRequired: true},
-              { header: 'Filename', binding: 'filename', width: '1*', minWidth: 150, isReadOnly: true},
-              { header: 'Delete', binding: 'sel_for_deletion', width: '.5*', minWidth: 80},
+            { header: 'ID', binding: 'id', width: '1.3*', minWidth: 250, isReadOnly: true },
+            { header: 'Name', binding: 'name', width: '1*', minWidth: 250, isRequired: true },
+            { header: 'City', binding: 'city', width: '1*', minWidth: 200, isRequired: true },
+            { header: 'State', binding: 'state', width: '1*', minWidth: 150, isRequired: true },
+            { header: 'Type', binding: 'type', width: '.8*', minWidth: 150, isRequired: true},
+            { header: 'Filename', binding: 'filename', width: '1*', minWidth: 150, isReadOnly: true},
+            { header: 'Delete', binding: 'sel_for_deletion', width: '.5*', minWidth: 80},
           ]}
           cellEditEnded={this.onCellEditEnded}
+          cellEditEnding={this.saveState}
           showDropDown={true}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
-          // cellEditEnding={this.onChange}
           allowAddNew={true}
           onRowAdded={this.onChange}
           updatedView={this.updatedView}
@@ -265,32 +423,40 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+
+  getViewsDropdown() {
+    return (
+      <ViewsDropdown table='venues' saveState={this.saveStatePromise}/>
+    )
+  }
+
+  deleteView() {
+    const { currentView = '' } = this.state
+    if (currentView != 'default') {
+      const updates = {}
+      updates[`/views/venues/allViews/${currentView}` ] = null
+      updates[`/views/venues/currentView` ] = 'default'
+      return firebase.ref().update(updates)
+    }
+  }
   render() {
+    const { currentView = '' } = this.state
+    const show_delete_view = currentView !== 'default';
     return (
       <div>
         <Header tab='venues'/>
-        <div className='container'>
-          <div className="row">
-            <div className='col-md-12'>
-              <span className='table_header'>Venues</span>
-              <button className='pull-right btn btn-default mb10' onClick={this.deleteSelected}> Delete Selected </button>
-              {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
-            </div>
-          </div>
-        </div>
+        {this.getViewsDropdown()}
+        <span className='table_header'>Venues</span>
+        <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
+        { show_delete_view && <button className='pull-right btn btn-default mb10 mr10' onClick={this.deleteView}> Delete View </button>}
+        {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
         <div id="filterPanel"></div>
         <div style={{display : 'none'}}>
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
-        <div className='container'>
-          <div className="row">
-            <div className='col-md-12'>
-              {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
-              {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
-            </div>
-          </div>
-        </div>
+        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+        {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
       </div>
     )
   }
