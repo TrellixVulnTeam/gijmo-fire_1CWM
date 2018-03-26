@@ -12,6 +12,8 @@ import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
 import { CollectionView, Control, hidePopup, hasClass, showPopup, format, PropertyGroupDescription } from 'wijmo/wijmo'
 
+const TABLE_KEY = 'events'
+
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -41,7 +43,7 @@ export default class Panel extends React.Component {
     // get initial state
     this.initialised = false
     this.state = {
-      events: [],
+      [TABLE_KEY]: [],
       view: null,
       contacts_dropdown: null,
       venues_dropdown: null,
@@ -120,7 +122,6 @@ export default class Panel extends React.Component {
     return null
   }
 
-
   // Gets group and sort description
   getDescriptions(keys) {
     const descriptions = {}
@@ -144,7 +145,7 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView) {
       const updates = {}
-      updates[`/views/events/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
       return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
@@ -156,7 +157,6 @@ export default class Panel extends React.Component {
 
   retrieveState() {
     const { viewState = '' } = this.state
-    console.log('viewState', viewState)
     if (viewState) {
       const table_state = JSON.parse(viewState)
       const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
@@ -216,7 +216,7 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    this.views_ref = firebase.ref().child('views').child('events');
+    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {}, currentView = '' } = views_data ? views_data : {}
@@ -241,7 +241,7 @@ export default class Panel extends React.Component {
 
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-    this.store_ref = firebase.ref().child('events');
+    this.store_ref = firebase.ref().child(TABLE_KEY);
     this.store_ref.on('value', (snapshot) => {
       const events_obj = snapshot.val();
       const events_list = this.getProcessedEvents(events_obj);
@@ -282,11 +282,13 @@ export default class Panel extends React.Component {
       },
     ]
   }
+
   deselectEverything() {
     if (this.state.view.moveCurrentToPosition) {
       this.state.view.moveCurrentToPosition(-1)
     }
   }
+
   onChange(s, e) {
     const items = this.state.view.itemsAdded
     let p = Promise.resolve()
@@ -353,7 +355,7 @@ export default class Panel extends React.Component {
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates['/events/' + item_id ] = updated_item;
+      updates[`/${TABLE_KEY}/` + item_id ] = updated_item;
       return firebase.ref().update(updates)
     }
     return Promise.resolve()
@@ -368,7 +370,7 @@ export default class Panel extends React.Component {
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(event => {
-      updates['/events/'+event['id']] = null
+      updates[`/${TABLE_KEY}/` + event['id']] = null
     })
     firebase.ref().update(updates);
   }
@@ -401,6 +403,7 @@ export default class Panel extends React.Component {
   gotoTop() {
     window.scrollTo(0,0);
   }
+
   isLongList() {
     const { view } = this.state;
     if (view && view.items) {
@@ -408,6 +411,7 @@ export default class Panel extends React.Component {
     }
     return false
   }
+
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
     this.setupGrouping()
@@ -415,6 +419,7 @@ export default class Panel extends React.Component {
       window.scrollTo(0, nPos);
     }
   }
+
   formatItem(s, e) {
     const flex = s;
     if (e.panel == flex.topLeftCells) {
@@ -424,6 +429,7 @@ export default class Panel extends React.Component {
       e.cell.innerHTML = format('<div class="text-center"><a href="/event/{id}" target="_blank"> Link &rarr; </a></div>', flex.rows[e.row].dataItem);
     }
   }
+
   getLoader() {
     return (
       <div className="text-center">
@@ -431,6 +437,7 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+
   getGrids() {
     const { contacts_dropdown, venues_dropdown } = this.state;
     return (
@@ -466,28 +473,31 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+
   getViewsDropdown() {
     return (
-      <ViewsDropdown table='events' saveState={this.saveStatePromise}/>
+      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
     )
   }
+
   deleteView() {
     const { currentView = '' } = this.state
     if (currentView != 'default') {
       const updates = {}
-      updates[`/views/events/allViews/${currentView}` ] = null
-      updates[`/views/events/currentView` ] = 'default'
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
+      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
       return firebase.ref().update(updates)
     }
   }
+
   render() {
     const { currentView = '' } = this.state
     const show_delete_view = currentView !== 'default';
     return (
       <div>
-        <Header tab='events'/>
+        <Header tab={TABLE_KEY}/>
         {this.getViewsDropdown()}
-        <span className='table_header'>Songs</span>
+        <span className='table_header'>Events</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
         { show_delete_view && <button className='pull-right btn btn-default mb10 mr10' onClick={this.deleteView}> Delete View </button>}
         {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
@@ -496,7 +506,7 @@ export default class Panel extends React.Component {
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
-        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button mr15' onClick={this.deleteSelected}> Delete Selected </button>}
         {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
       </div>
     )

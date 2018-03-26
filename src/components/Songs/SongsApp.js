@@ -38,7 +38,7 @@ export default class Panel extends React.Component {
     this.deleteView = this.deleteView.bind(this)
     // get initial state
     this.state = {
-      songs: [],
+      [TABLE_KEY]: [],
       view: null
     };
   }
@@ -74,7 +74,7 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    this.views_ref = firebase.ref().child('views').child('songs');
+    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {}, currentView = '' } = views_data ? views_data : {}
@@ -98,7 +98,7 @@ export default class Panel extends React.Component {
   }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-    this.store_ref = firebase.ref().child('songs');
+    this.store_ref = firebase.ref().child(TABLE_KEY);
     this.store_ref.on('value', (snapshot) => {
       const songs_obj = snapshot.val();
       const songs_list = this.getProcessedSongs(songs_obj);
@@ -176,6 +176,7 @@ export default class Panel extends React.Component {
     })
     return filter_panel
   }
+
   getTableState() {
     const { flex, filter } = this.state
     if (flex && filter) {
@@ -215,7 +216,7 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView) {
       const updates = {}
-      updates[`/views/songs/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
       return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
@@ -272,6 +273,7 @@ export default class Panel extends React.Component {
       this.state.flex.refresh();
     }
   }
+
   getUpdatedItem(item) {
     const deep_item = {...item}
     delete deep_item['id']
@@ -294,7 +296,7 @@ export default class Panel extends React.Component {
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates['/songs/' + item_id ] = updated_item;
+      updates[`/${TABLE_KEY}/` + item_id ] = updated_item;
       return firebase.ref().update(updates)
     }
     return Promise.resolve()
@@ -309,7 +311,7 @@ export default class Panel extends React.Component {
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(song => {
-      updates['/songs/'+song['id']] = null
+      updates[`/${TABLE_KEY}/` + song['id']] = null
     })
     firebase.ref().update(updates);
   }
@@ -318,12 +320,15 @@ export default class Panel extends React.Component {
     const selected_rows = this.state.view.items.filter(song => song['sel_for_deletion'])
     this.deleteRows(selected_rows)
   }
+
   onClickAddRow() {
     this.bottom.scrollIntoView()
   }
+
   gotoTop() {
     window.scrollTo(0,0);
   }
+
   setupGrouping() {
     const grouping_successful = false
     let interval = null
@@ -339,6 +344,7 @@ export default class Panel extends React.Component {
     }
     setTimeout(mapGrouping, 1000)
   }
+
   updatedView(s, e) {
     let nPos = localStorage.getItem("pos");
     this.setupGrouping()
@@ -346,11 +352,13 @@ export default class Panel extends React.Component {
       window.scrollTo(0, nPos);
     }
   }
+
   formatItem(s, e) {
     if (e.panel == s.topLeftCells) {
       e.cell.innerHTML = '<span class="column-picker-icon glyphicon glyphicon-cog"></span>';
     }
   }
+
   getLoader() {
     return (
       <div className="text-center">
@@ -358,6 +366,7 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+
   getGrids() {
     const { view } = this.state;
     if (view == null) {
@@ -379,6 +388,7 @@ export default class Panel extends React.Component {
               { header: 'Delete', binding: 'sel_for_deletion', width: '.4*', minWidth: 80},
           ]}
           cellEditEnded={this.onCellEditEnded}
+          cellEditEnding={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}
@@ -392,7 +402,7 @@ export default class Panel extends React.Component {
 
   getViewsDropdown() {
     return (
-      <ViewsDropdown table='songs' saveState={this.saveStatePromise}/>
+      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
     )
   }
 
@@ -400,8 +410,8 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView != 'default') {
       const updates = {}
-      updates[`/views/songs/allViews/${currentView}` ] = null
-      updates[`/views/songs/currentView` ] = 'default'
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
+      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
       return firebase.ref().update(updates)
     }
   }
@@ -411,7 +421,7 @@ export default class Panel extends React.Component {
     const show_delete_view = currentView !== 'default';
     return (
       <div>
-        <Header tab='songs'/>
+        <Header tab={TABLE_KEY}/>
         {this.getViewsDropdown()}
         <span className='table_header'>Songs</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
@@ -422,7 +432,7 @@ export default class Panel extends React.Component {
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
-        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button mr15' onClick={this.deleteSelected}> Delete Selected </button>}
         {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
       </div>
     )

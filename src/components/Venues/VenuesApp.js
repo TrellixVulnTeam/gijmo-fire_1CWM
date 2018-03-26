@@ -39,7 +39,7 @@ export default class Panel extends React.Component {
     this.deleteView = this.deleteView.bind(this)
     // get initial state
     this.state = {
-      venues: [],
+      [TABLE_KEY]: [],
       view: null
     };
   }
@@ -94,7 +94,7 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    this.views_ref = firebase.ref().child('views').child('venues');
+    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {}, currentView = '' } = views_data ? views_data : {}
@@ -115,7 +115,7 @@ export default class Panel extends React.Component {
   }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-    this.store_ref = firebase.ref().child('venues');
+    this.store_ref = firebase.ref().child(TABLE_KEY);
     this.store_ref.on('value', (snapshot) => {
       const venues_obj = snapshot.val();
       const venues_list = this.getProcessedVenues(venues_obj);
@@ -237,7 +237,7 @@ export default class Panel extends React.Component {
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates['/venues/' + item_id ] = updated_item;
+      updates[`/${TABLE_KEY}/` + item_id ] = updated_item;
       return firebase.ref().update(updates)
     }
     return Promise.resolve()
@@ -252,7 +252,7 @@ export default class Panel extends React.Component {
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(venue => {
-      updates['/venues/'+venue['id']] = null
+      updates[`/${TABLE_KEY}/` + venue['id']] = null
     })
     firebase.ref().update(updates);
   }
@@ -326,7 +326,7 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView) {
       const updates = {}
-      updates[`/views/venues/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
       return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
@@ -426,7 +426,7 @@ export default class Panel extends React.Component {
 
   getViewsDropdown() {
     return (
-      <ViewsDropdown table='venues' saveState={this.saveStatePromise}/>
+      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
     )
   }
 
@@ -434,8 +434,8 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView != 'default') {
       const updates = {}
-      updates[`/views/venues/allViews/${currentView}` ] = null
-      updates[`/views/venues/currentView` ] = 'default'
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
+      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
       return firebase.ref().update(updates)
     }
   }
@@ -444,7 +444,7 @@ export default class Panel extends React.Component {
     const show_delete_view = currentView !== 'default';
     return (
       <div>
-        <Header tab='venues'/>
+        <Header tab={TABLE_KEY}/>
         {this.getViewsDropdown()}
         <span className='table_header'>Venues</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
@@ -455,7 +455,7 @@ export default class Panel extends React.Component {
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
-        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button mr15' onClick={this.deleteSelected}> Delete Selected </button>}
         {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
       </div>
     )

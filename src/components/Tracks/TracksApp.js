@@ -12,6 +12,8 @@ import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
 import { CollectionView, Control, hidePopup, hasClass, showPopup, PropertyGroupDescription } from 'wijmo/wijmo'
 
+const TABLE_KEY = 'tracks'
+
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -80,7 +82,7 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    this.views_ref = firebase.ref().child('views').child('tracks');
+    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {}, currentView = '' } = views_data ? views_data : {}
@@ -97,7 +99,7 @@ export default class Panel extends React.Component {
   }
 
   componentDidMount() {
-    this.store_ref = firebase.ref().child('tracks');
+    this.store_ref = firebase.ref().child(TABLE_KEY);
     this.store_ref.on('value', (snapshot) => {
       const events_obj = snapshot.val();
       const events_list = this.getProcessedTracks(events_obj);
@@ -222,7 +224,7 @@ export default class Panel extends React.Component {
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates['/tracks/' + item_id ] = updated_item;
+      updates[`/${TABLE_KEY}/` + item_id ] = updated_item;
       return firebase.ref().update(updates)
     }
     return Promise.resolve()
@@ -238,7 +240,7 @@ export default class Panel extends React.Component {
   deleteRows(rows = []) {
     const updates = {}
     const ids = rows.map(event => {
-      updates['/tracks/'+event['id']] = null
+      updates[`/${TABLE_KEY}/` + event['id']] = null
     })
     firebase.ref().update(updates);
   }
@@ -362,7 +364,7 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView) {
       const updates = {}
-      updates[`/views/tracks/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
       return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
@@ -467,7 +469,7 @@ export default class Panel extends React.Component {
   }
   getViewsDropdown() {
     return (
-      <ViewsDropdown table='tracks' saveState={this.saveStatePromise}/>
+      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
     )
   }
 
@@ -475,8 +477,8 @@ export default class Panel extends React.Component {
     const { currentView = '' } = this.state
     if (currentView != 'default') {
       const updates = {}
-      updates[`/views/tracks/allViews/${currentView}` ] = null
-      updates[`/views/tracks/currentView` ] = 'default'
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
+      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
       return firebase.ref().update(updates)
     }
   }
@@ -486,7 +488,7 @@ export default class Panel extends React.Component {
     const show_delete_view = currentView !== 'default';
     return (
       <div>
-        <Header tab='tracks'/>
+        <Header tab={TABLE_KEY}/>
         {this.getViewsDropdown()}
         <span className='table_header'>Tracks</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
