@@ -486,6 +486,7 @@ export default class Panel extends React.Component {
   render() {
     const { currentView = '' } = this.state
     const show_delete_view = currentView !== 'default';
+    const is_long_list = this.isLongList()
     return (
       <div>
         <Header tab={TABLE_KEY}/>
@@ -493,14 +494,14 @@ export default class Panel extends React.Component {
         <span className='table_header'>Tracks</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
         { show_delete_view && <button className='pull-right btn btn-default mb10 mr10' onClick={this.deleteView}> Delete View </button>}
-        {this.isLongList() && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
+        { is_long_list && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}
         <div id="filterPanel"></div>
         <div style={{display : 'none'}}>
           <div id="theColumnPicker" className="column-picker"></div>
         </div>
         {this.getGrids()}
-        {this.isLongList() && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
-        {this.isLongList() && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
+        { is_long_list && <button ref={(el) => { this.bottom = el }} className='pull-right btn btn-default mt10 bottom-button' onClick={this.deleteSelected}> Delete Selected </button>}
+        { is_long_list && <button onClick={this.gotoTop} className='pull-right btn btn-default mt10 bottom-button mr10'> Go to top </button>}
       </div>
     )
   }
