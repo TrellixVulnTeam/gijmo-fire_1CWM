@@ -72,7 +72,7 @@ export default class Panel extends React.Component {
   }
 
   setupDatamap() {
-    const { flex } = this.state
+    const { flex, view } = this.state
     if (flex) {
       ['contact', 'venue'].map((keyname) => {
         const state_key = keyname + 's_dropdown'
@@ -87,6 +87,9 @@ export default class Panel extends React.Component {
           }
         })
       })
+      if (view) {
+        view.refresh()
+      }
     }
   }
 
