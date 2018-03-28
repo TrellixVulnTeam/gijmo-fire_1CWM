@@ -10,7 +10,7 @@ import { GroupPanel } from 'wijmo/wijmo.react.grid.grouppanel';
 import { FlexGridFilter } from 'wijmo/wijmo.grid.filter'
 import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
-import { CollectionView, Control, hidePopup, hasClass, showPopup, format, PropertyGroupDescription } from 'wijmo/wijmo'
+import { CollectionView, Control, hidePopup, hasClass, showPopup, format, PropertyGroupDescription, SortDescription } from 'wijmo/wijmo'
 
 const TABLE_KEY = 'events'
 
@@ -114,7 +114,8 @@ export default class Panel extends React.Component {
     if (flex && filter) {
       const { columnLayout = {} } = this.state.flex
       const { filterDefinition = {} } = this.state.filter
-      const { groupDescriptions, sortDescriptions } = this.getDescriptions(['group', 'sort'])
+      const { sortDescriptions = {} } = this.state.flex.collectionView
+      const { groupDescriptions = {} } = this.getGroupDescriptions()
       return {
         columnLayout,
         filterDefinition,
@@ -125,20 +126,20 @@ export default class Panel extends React.Component {
     return null
   }
 
+
   // Gets group and sort description
-  getDescriptions(keys) {
+  getGroupDescriptions(keys) {
     const descriptions = {}
     const { view } = this.state;
     if (view) {
-      keys.map((key) => {
-        let desc = [];
-        const description = view[key + 'Descriptions'] ? view[key + 'Descriptions'] : {}
-        for (let group in description) {
-          if (description[group].propertyName)
-          desc.push(description[group].propertyName);
-        }
-        descriptions[key + 'Descriptions'] = desc
-      })
+      const key = 'group'
+      let desc = [];
+      const description = view[key + 'Descriptions'] ? view[key + 'Descriptions'] : {}
+      for (let group in description) {
+        if (description[group].propertyName)
+        desc.push(description[group].propertyName);
+      }
+      descriptions[key + 'Descriptions'] = desc
     }
     return descriptions
   }
@@ -188,11 +189,13 @@ export default class Panel extends React.Component {
   applySortDescriptions(loadedSort) {
     const { view, flex } = this.state
     if (loadedSort && view && flex) {
-      this.state.view.sortDescriptions.clear();
-      for (var i = 0; i < loadedSort.length; i++) {
-        this.state.view.sortDescriptions.push(new PropertyGroupDescription(loadedSort[i]));
+      flex.collectionView.sortDescriptions.clear();
+      for (let i = 0; i < loadedSort.length; i++) {
+        let sortDesc = loadedSort[i];
+        flex.collectionView.sortDescriptions.push(
+          new SortDescription(sortDesc._bnd._key, sortDesc._asc)
+        );
       }
-      this.state.flex.refresh();
     }
   }
 

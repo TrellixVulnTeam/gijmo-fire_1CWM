@@ -99,12 +99,12 @@ export default class ViewsDropdown extends React.Component {
   }
 
   getListItems() {
-    const {resultViews = {}, currentView = ''} = this.state;
-    const show_empty = Object.keys(resultViews).length == 0;
+    const {resultViews = {}, currentView = '', allViews, text} = this.state;
+    const show_empty = text && Object.keys(allViews).some(key => allViews[key]['name'] !== text)
     return (
       <div className="list-group-wrapper">
         {
-          !show_empty && <ListGroup componentClass="ul" className="dropdown-list-items">
+          <ListGroup componentClass="ul" className="dropdown-list-items">
             {
               Object.keys(resultViews).map(view_id => {
                 const { name = '' } = resultViews[view_id]
@@ -131,9 +131,8 @@ export default class ViewsDropdown extends React.Component {
   addView(e) {
     const { text = '', resultViews = {}, currentView = '', allViews = {} } = this.state
     const { table = '', saveState } = this.props
-    const can_add = Object.keys(resultViews).length == 0
     if (e.key == 'Enter') {
-      if (!this.isValidText(text) || !can_add) {
+      if (!this.isValidText(text)) {
         return
       }
 
