@@ -16,6 +16,7 @@ const Header = (props) => {
               <li className={tab == 'venues' ? 'active' : '' }> <Link to={'/venues'}>Venues</Link></li>
               <li className={tab == 'tracks' ? 'active' : '' }> <Link to={'/tracks'}>Tracks</Link></li>
               <li className={tab == 'songs' ? 'active' : '' }> <Link to={'/songs'}>Songs</Link></li>
+              <li className={tab == 'projects' ? 'active' : '' }> <Link to={'/projects'}>Projects</Link></li>
               <li className={tab == 'websites' ? 'active' : '' }> <Link to={'/websites'}>Websites</Link></li>
               <li className={tab == 'webpages' ? 'active' : '' }> <Link to={'/webpages'}>Webpages</Link></li>
 
