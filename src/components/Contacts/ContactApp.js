@@ -77,6 +77,7 @@ export default class ContactApp extends React.Component {
 
   setupTableStateListener() {
     this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
+
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {}, currentView = '' } = views_data ? views_data : {}
@@ -94,18 +95,25 @@ export default class ContactApp extends React.Component {
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
     this.store_ref = firebase.ref().child(TABLE_KEY);
+
     this.store_ref.on('value', (snapshot) => {
       const contacts_obj = snapshot.val();
       const contacts_list = this.getProcessedContacts(contacts_obj);
+
       const view = new CollectionView(contacts_list);
+
       view.trackChanges = true;
+
+
       this.setState({
         view
       }, () => {
         this.deselectEverything()
       })
     })
+
     this.setupTableStateListener()
+
     window.addEventListener("scroll", this.onScroll, false);
   }
 
@@ -175,7 +183,10 @@ export default class ContactApp extends React.Component {
     localStorage.setItem('pos', top);
   }
 
+  /* s : is the grid itself, sender */
+
   onInitialized(s, e) {
+
     const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
     const filter_panel = new FilterPanel('#filterPanel', {
         filter: filter,
@@ -199,6 +210,8 @@ export default class ContactApp extends React.Component {
         e.preventDefault();
       }
     });
+
+
     this.setState({
       flex: s,
       filter: filter
@@ -236,10 +249,12 @@ export default class ContactApp extends React.Component {
   }
 
   onCellEditEnded(s, e) {
+
     const { row, col } = e;
     let item = {...s.rows[row].dataItem};
     this.saveItem(item)
   }
+
  deselectEverything() {
     if (this.state.view.moveCurrentToPosition) {
       this.state.view.moveCurrentToPosition(-1)
@@ -335,9 +350,10 @@ export default class ContactApp extends React.Component {
     const table_state = this.getTableState()
     const { currentView = '' } = this.state
     if (currentView) {
-      const updates = {}
-      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
-      return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
+      // const updates = {}
+      // updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      window.localStorage.setItem('state_'+TABLE_KEY, JSON.stringify(table_state))
+      return Promise.resolve()
     }
     return Promise.resolve()
   }
@@ -347,7 +363,8 @@ export default class ContactApp extends React.Component {
   }
 
   retrieveState() {
-    const { viewState = '' } = this.state
+    // const { viewState = '' } = this.state
+    const viewState = localStorage.getItem('state_'+TABLE_KEY)
     if (viewState) {
       const table_state = JSON.parse(viewState)
       const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
@@ -422,7 +439,6 @@ export default class ContactApp extends React.Component {
           ]}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
-          showDropDown={true}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}

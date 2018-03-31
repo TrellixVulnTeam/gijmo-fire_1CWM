@@ -148,9 +148,10 @@ export default class Panel extends React.Component {
     const table_state = this.getTableState()
     const { currentView = '' } = this.state
     if (currentView) {
-      const updates = {}
-      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
-      return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
+      // const updates = {}
+      // updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      window.localStorage.setItem('state_'+TABLE_KEY, JSON.stringify(table_state))
+      return Promise.resolve()
     }
     return Promise.resolve()
   }
