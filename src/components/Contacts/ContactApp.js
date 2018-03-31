@@ -366,7 +366,8 @@ export default class ContactApp extends React.Component {
     // const { viewState = '' } = this.state
     const viewState = localStorage.getItem('state_'+TABLE_KEY)
     if (viewState) {
-      const table_state = JSON.parse(viewState)
+      let table_state = JSON.parse(viewState)
+      table_state = table_state ? table_state : {}
       const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
       this.applyColumnLayout(columnLayout)
       this.applyFilters(filterDefinition)
