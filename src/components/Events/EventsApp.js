@@ -14,6 +14,18 @@ import { CollectionView, Control, hidePopup, hasClass, showPopup, format, Proper
 
 const TABLE_KEY = 'events'
 
+const getCurrentViewKey = () => {
+  return 'state_' + TABLE_KEY
+}
+
+const getCurrentView = () => {
+  const view = window.localStorage.getItem(getCurrentViewKey())
+  if (!view) {
+    window.localStorage.setItem(getCurrentViewKey(), 'default')
+  }
+  return view ? view : 'default'
+}
+
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -39,12 +51,15 @@ export default class Panel extends React.Component {
     this.setupTableStateListener = this.setupTableStateListener.bind(this)
     this.saveStatePromise = this.saveStatePromise.bind(this)
     this.deleteView = this.deleteView.bind(this)
+    this.setCurrentViewId = this.setCurrentViewId.bind(this)
+    this.getViewsDropdown = this.getViewsDropdown.bind(this)
 
     // get initial state
     this.initialised = false
     this.state = {
       [TABLE_KEY]: [],
       view: null,
+      currentView: getCurrentView(),
       contacts_dropdown: null,
       venues_dropdown: null,
       new_mongid: mongoObjectId(),
@@ -58,6 +73,17 @@ export default class Panel extends React.Component {
         sel_for_deletion: false,
         ...events_obj[key],
       }
+    })
+  }
+
+  setCurrentViewId(currentView = 'default') {
+    const {allViews = {}} =  this.state
+    window.localStorage.setItem(getCurrentViewKey(), currentView)
+    this.setState({
+      currentView,
+      viewState: allViews[currentView]['state']
+    }, () => {
+      this.retrieveState()
     })
   }
 
@@ -148,10 +174,9 @@ export default class Panel extends React.Component {
     const table_state = this.getTableState()
     const { currentView = '' } = this.state
     if (currentView) {
-      // const updates = {}
-      // updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
-      window.localStorage.setItem('state_'+TABLE_KEY, JSON.stringify(table_state))
-      return Promise.resolve()
+      const updates = {}
+      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
   }
@@ -161,8 +186,8 @@ export default class Panel extends React.Component {
   }
 
   retrieveState() {
-    // const { viewState = '' } = this.state
-    const viewState = localStorage.getItem('state_'+TABLE_KEY)
+    const { viewState = '' } = this.state
+    // const viewState = localStorage.getItem(CONFIG.getCurrentViewKey())
     if (viewState) {
       let table_state = JSON.parse(viewState)
       table_state = table_state ? table_state : {}
@@ -225,17 +250,20 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
+    let { currentView } = this.state
+    currentView = currentView ? currentView : 'default'
     this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
+
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
-      const { allViews = {}, currentView = '' } = views_data ? views_data : {}
+      const { allViews = {} } = views_data ? views_data : {}
       this.setState({
-        currentView,
-        viewState: allViews[currentView]['state']
+        allViews
       }, () => {
-        this.retrieveState()
+        this.setCurrentViewId(currentView)
       })
     })
+
     if ('onbeforeunload' in window) {
       window.onbeforeunload = this.saveState
     }
@@ -484,8 +512,14 @@ export default class Panel extends React.Component {
   }
 
   getViewsDropdown() {
+    const { currentView = 'default' } = this.state
     return (
-      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
+      <ViewsDropdown
+        table={TABLE_KEY}
+        saveState={this.saveStatePromise}
+        setCurrentViewId={this.setCurrentViewId}
+        currentView={currentView}
+      />
     )
   }
 
@@ -494,7 +528,7 @@ export default class Panel extends React.Component {
     if (currentView != 'default') {
       const updates = {}
       updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
-      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
+      this.setCurrentViewId('default')
       return firebase.ref().update(updates)
     }
   }
