@@ -14,12 +14,10 @@ export default class ViewsDropdown extends React.Component {
     this.getListItems = this.getListItems.bind(this);
     this.setCurrentView = this.setCurrentView.bind(this);
     this.addView = this.addView.bind(this);
-
     this.state = {
       dropdownOpen: false,
       text: '',
       allViews: {},
-      currentView: '',
       resultViews: {}
     };
   }
@@ -38,19 +36,22 @@ export default class ViewsDropdown extends React.Component {
   }
 
   setCurrentView(view_id, e) {
-    const { table = '', saveState } = this.props
-    const updated_item = view_id
-    const updates = {}
-    updates[`/views/${table}/currentView` ] = updated_item
+    const { table = '', saveState, setCurrentViewId } = this.props
+    // const updated_item = view_id
+    // const updates = {}
+    // updates[`/views/${table}/currentView` ] = updated_item
     document.getElementById('show_view').click()
     this.setState({
       isChangingView: true
     }, () => {
+
       saveState()
-      firebase.ref().update(updates)
+      // firebase.ref().update(updates)
       .then(() => {
         this.setState({
           isChangingView: false
+        }, () => {
+          setCurrentViewId(view_id)
         })
       })
     })
@@ -99,7 +100,8 @@ export default class ViewsDropdown extends React.Component {
   }
 
   getListItems() {
-    const {resultViews = {}, currentView = '', allViews, text} = this.state;
+    const {resultViews = {}, allViews, text} = this.state;
+    const { currentView = 'default' } = this.props
     const show_empty = text && Object.keys(allViews).some(key => allViews[key]['name'] !== text)
     return (
       <div className="list-group-wrapper">
@@ -129,7 +131,8 @@ export default class ViewsDropdown extends React.Component {
   }
 
   addView(e) {
-    const { text = '', resultViews = {}, currentView = '', allViews = {} } = this.state
+    const { text = '', resultViews = {}, allViews = {} } = this.state
+    const { currentView = 'default', setCurrentViewId } = this.props
     const { table = '', saveState } = this.props
     if (e.key == 'Enter') {
       if (!this.isValidText(text)) {
@@ -142,12 +145,14 @@ export default class ViewsDropdown extends React.Component {
         const new_view_id = 'view-' + mongoObjectId()
         const updates = {}
         updates[`/views/${table}/allViews/${new_view_id}` ] = new_view
-        updates[`/views/${table}/currentView` ] = new_view_id
-        return firebase.ref().update(updates)
+        // updates[`/views/${table}/currentView` ] = new_view_id
+        return firebase.ref().update(updates).then(() => new_view_id)
       })
-      .then(() => {
+      .then((new_view_id) => {
         this.setState({
           text: ''
+        }, () => {
+          setCurrentViewId(new_view_id)
         })
       })
     }
@@ -186,7 +191,8 @@ export default class ViewsDropdown extends React.Component {
   }
 
   render() {
-    const { currentView = '', allViews = {}, isChangingView = false } = this.state
+    const { allViews = {}, isChangingView = false } = this.state
+    const { currentView = 'default' } = this.props
     const dropdown_text = allViews[currentView] ? allViews[currentView]['name'] : 'Select a view'
     return (
       <OverlayTrigger trigger="click" placement="bottom" overlay={this.getPopover()} rootClose>

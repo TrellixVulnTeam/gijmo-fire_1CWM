@@ -12,12 +12,61 @@ import { ListBox } from 'wijmo/wijmo.input'
 import { DataMap } from 'wijmo/wijmo.grid'
 import { CollectionView, Control, hidePopup, hasClass, showPopup, PropertyGroupDescription, SortDescription } from 'wijmo/wijmo'
 
-const TABLE_KEY = 'contacts'
+
+const CONFIG = {
+  DROPDOWN: [
+    {
+      binding: 'type',
+      data: [
+        {
+          name : 'Artist',
+          key: 'artist'
+        },
+        {
+          name : 'Brand',
+          key: 'brand'
+        },
+        {
+          name : 'Person',
+          key: 'person'
+        },
+        {
+          name : 'Employee',
+          key: 'employee'
+        },
+        {
+          name : 'Contractor',
+          key: 'contractor'
+        },
+      ]
+    }
+  ],
+  COLUMNS: [
+    { header: 'ID', binding: 'id', width: '1.3*', minWidth: 300, isReadOnly: true },
+    { header: 'Name', binding: 'name', width: '1*', minWidth: 300, isRequired: true },
+    { header: 'Type', binding: 'type', width: '1.2*', minWidth: 150, isRequired: true },
+    { header: 'Filename', binding: 'filename', width: '1*', minWidth: 300, isReadOnly: true },
+    { header: 'Delete', binding: 'sel_for_deletion', width: '.4*', minWidth: 80 },
+  ],
+  TABLE_KEY: 'contacts',
+  ENTITY_KEY: 'contact',
+  TABLE_HEADER: 'Contacts',
+  FILENAME_FORMAT: ['name'],
+  getCurrentViewKey: function() {
+    return 'state_' + this.TABLE_KEY
+  }
+}
+const getCurrentView = () => {
+  const view = window.localStorage.getItem(CONFIG.getCurrentViewKey())
+  if (!view) {
+    window.localStorage.setItem(CONFIG.getCurrentViewKey(), 'default')
+  }
+  return view ? view : 'default'
+}
 
 export default class ContactApp extends React.Component {
   constructor(props) {
     super(props);
-    this.getContactsData = this.getContactsData.bind(this)
     this.onChange = this.onChange.bind(this)
     this.onInitialized = this.onInitialized.bind(this)
     this.onCellEditEnded = this.onCellEditEnded.bind(this)
@@ -36,68 +85,89 @@ export default class ContactApp extends React.Component {
     this.getViewsDropdown = this.getViewsDropdown.bind(this)
     this.saveStatePromise = this.saveStatePromise.bind(this)
     this.deleteView = this.deleteView.bind(this)
+    this.setCurrentViewId = this.setCurrentViewId.bind(this)
+    this.setupDropdowns = this.setupDropdowns.bind(this)
     // get initial state
     this.state = {
-      [TABLE_KEY]: [],
+      [CONFIG.TABLE_KEY]: [],
       view: null,
+      currentView: getCurrentView()
     };
   }
 
-  getProcessedContacts(contacts_obj) {
-    return Object.keys(contacts_obj).map((key) => {
+  getProcessedEntity(entity_obj) {
+    return Object.keys(entity_obj).map((key) => {
       return {
         id: key,
         sel_for_deletion: false,
-        ...contacts_obj[key],
+        ...entity_obj[key],
       }
     })
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const { flex } = this.state
     this.retrieveState()
     this.setupDropdowns()
   }
 
   setupDropdowns() {
-    const dropdown_keys = ['type'];
-    dropdown_keys.forEach((keyname) => {
-      const dropdown_items = this.getContactTypes();
+    const { view } = this.state
+    const dropdown_config = CONFIG.DROPDOWN;
+    dropdown_config.forEach((config) => {
+      const dropdown_items = config.data
       const {flex} = this.state
       if (flex) {
         const columns = flex.columns;
         columns.forEach((column) => {
           const binding = column._binding._key
-          if (binding == keyname) {
+          if (binding == config.binding) {
             column.dataMap = new DataMap(dropdown_items, 'key', 'name')
           }
         })
       }
     })
+    if (view) {
+      view.refresh()
+    }
+  }
+
+  setCurrentViewId(currentView = 'default') {
+    const {allViews = {}} =  this.state
+    window.localStorage.setItem(CONFIG.getCurrentViewKey(), currentView)
+    this.setState({
+      currentView,
+      viewState: allViews[currentView]['state']
+    }, () => {
+      this.retrieveState()
+    })
   }
 
   setupTableStateListener() {
-    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
+    this.views_ref = firebase.ref().child('views').child(CONFIG.TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
-      const { allViews = {}, currentView = '' } = views_data ? views_data : {}
+      let { currentView } = this.state
+      const { allViews = {} } = views_data ? views_data : {}
       this.setState({
-        currentView,
-        viewState: allViews[currentView]['state']
+        allViews
       }, () => {
-        this.retrieveState()
+        this.setCurrentViewId(currentView)
       })
     })
+
     if ('onbeforeunload' in window) {
       window.onbeforeunload = this.saveState
     }
   }
   // connect GroupPanel to FlexGrid when the component mounts
   componentDidMount() {
-    this.store_ref = firebase.ref().child(TABLE_KEY);
+    this.store_ref = firebase.ref().child(CONFIG.TABLE_KEY);
+
     this.store_ref.on('value', (snapshot) => {
-      const contacts_obj = snapshot.val();
-      const contacts_list = this.getProcessedContacts(contacts_obj);
-      const view = new CollectionView(contacts_list);
+      const entities_obj = snapshot.val();
+      const entities_list = this.getProcessedEntity(entities_obj);
+      const view = new CollectionView(entities_list);
       view.trackChanges = true;
       this.setState({
         view
@@ -132,40 +202,11 @@ export default class ContactApp extends React.Component {
     window.onscroll = null
   }
 
-  getContactsData() {
-    return Object.values(this.state.contacts)
-  }
-
-  getContactTypes() {
-    return [
-      {
-        name : 'Artist',
-        key: 'artist'
-      },
-      {
-        name : 'Brand',
-        key: 'brand'
-      },
-      {
-        name : 'Person',
-        key: 'person'
-      },
-      {
-        name : 'Employee',
-        key: 'employee'
-      },
-      {
-        name : 'Contractor',
-        key: 'contractor'
-      },
-    ]
-  }
-
   onChange(s, e) {
     const items = this.state.view.itemsAdded
     let p = Promise.resolve()
     for (let i = 0; i < items.length; i++) {
-      items[i].id = 'contact-'+mongoObjectId()
+      items[i].id = CONFIG.ENTITY_KEY+'-'+mongoObjectId()
       p = p.then(this.saveItem(items[i]))
     }
   }
@@ -175,7 +216,10 @@ export default class ContactApp extends React.Component {
     localStorage.setItem('pos', top);
   }
 
+  /* s : is the grid itself, sender */
+
   onInitialized(s, e) {
+
     const filter = new FlexGridFilter(s); // add a FlexGridFilter to it
     const filter_panel = new FilterPanel('#filterPanel', {
         filter: filter,
@@ -199,6 +243,8 @@ export default class ContactApp extends React.Component {
         e.preventDefault();
       }
     });
+
+
     this.setState({
       flex: s,
       filter: filter
@@ -211,35 +257,41 @@ export default class ContactApp extends React.Component {
   getUpdatedItem(item) {
     const deep_item = {...item}
     delete deep_item['id']
-    deep_item['filename'] = slugify(deep_item['name'] ? deep_item['name'] : '')
+    let filename = ''
+    CONFIG.FILENAME_FORMAT.map(key => {
+      filename += slugify(deep_item[key] ? deep_item[key] : '')
+    })
+    deep_item['filename'] = filename
     return deep_item
   }
 
-  isRowEmpty(contact = {}) {
-    contact = {...contact}
-    delete contact['sel_for_deletion']
-    return !Object.keys(contact).length
+  isRowEmpty(entity = {}) {
+    entity = {...entity}
+    delete entity['sel_for_deletion']
+    return !Object.keys(entity).length
   }
 
   saveItem(item = {}) {
     if (!this.isRowEmpty(item)) {
       let item_id = item['id'];
       if (!item_id) {
-        item_id = 'contact-'+mongoObjectId()
+        item_id = CONFIG.ENTITY_KEY + '-' + mongoObjectId()
       }
       const updates = {};
       const updated_item = this.getUpdatedItem(item);
-      updates[`/${TABLE_KEY}/` + item_id ] = updated_item;
+      updates[`/${CONFIG.TABLE_KEY}/` + item_id ] = updated_item;
       return firebase.ref().update(updates)
     }
     return Promise.resolve()
   }
 
   onCellEditEnded(s, e) {
+
     const { row, col } = e;
     let item = {...s.rows[row].dataItem};
     this.saveItem(item)
   }
+
  deselectEverything() {
     if (this.state.view.moveCurrentToPosition) {
       this.state.view.moveCurrentToPosition(-1)
@@ -247,14 +299,14 @@ export default class ContactApp extends React.Component {
   }
   deleteRows(rows = []) {
     const updates = {}
-    const ids = rows.map(contact => {
-      updates[`/${TABLE_KEY}/` + contact['id']] = null
+    const ids = rows.map(entity => {
+      updates[`/${CONFIG.TABLE_KEY}/` + entity['id']] = null
     })
     firebase.ref().update(updates);
   }
 
   deleteSelected() {
-    const selected_rows = this.state.view.items.filter(contact => contact['sel_for_deletion'])
+    const selected_rows = this.state.view.items.filter(entity => entity['sel_for_deletion'])
     this.deleteRows(selected_rows)
   }
 
@@ -299,9 +351,9 @@ export default class ContactApp extends React.Component {
   getTableState() {
     const { flex, filter } = this.state
     if (flex && filter) {
-      const { columnLayout = {} } = this.state.flex
+      const { columnLayout = {}, collectionView = {} } = this.state.flex
       const { filterDefinition = {} } = this.state.filter
-      const { sortDescriptions = {} } = this.state.flex.collectionView
+      const { sortDescriptions = {} } = collectionView
       const { groupDescriptions = {} } = this.getGroupDescriptions()
       return {
         columnLayout,
@@ -336,7 +388,7 @@ export default class ContactApp extends React.Component {
     const { currentView = '' } = this.state
     if (currentView) {
       const updates = {}
-      updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
+      updates[`/views/${CONFIG.TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
       return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
     }
     return Promise.resolve()
@@ -348,8 +400,10 @@ export default class ContactApp extends React.Component {
 
   retrieveState() {
     const { viewState = '' } = this.state
+    // const viewState = localStorage.getItem(CONFIG.getCurrentViewKey())
     if (viewState) {
-      const table_state = JSON.parse(viewState)
+      let table_state = JSON.parse(viewState)
+      table_state = table_state ? table_state : {}
       const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
       this.applyColumnLayout(columnLayout)
       this.applyFilters(filterDefinition)
@@ -413,16 +467,10 @@ export default class ContactApp extends React.Component {
           id ='theGrid'
           autoGenerateColumns={false}
           newRowAtTop={false}
-          columns={[
-            { header: 'ID', binding: 'id', width: '1.3*', minWidth: 300, isReadOnly: true },
-            { header: 'Name', binding: 'name', width: '1*', minWidth: 300, isRequired: true },
-            { header: 'Type', binding: 'type', dataMap: new DataMap(this.getContactTypes(), 'key', 'name'), width: '1.2*', minWidth: 150, isRequired: true },
-            { header: 'Filename', binding: 'filename', width: '1*', minWidth: 300, isReadOnly: true },
-            { header: 'Delete', binding: 'sel_for_deletion', width: '.4*', minWidth: 80 },
-          ]}
+          columns={CONFIG.COLUMNS}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
-          showDropDown={true}
+          onRefreshed={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}
@@ -435,8 +483,14 @@ export default class ContactApp extends React.Component {
   }
 
   getViewsDropdown() {
+    const { currentView = 'default' } = this.state
     return (
-      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
+      <ViewsDropdown
+        table={CONFIG.TABLE_KEY}
+        saveState={this.saveStatePromise}
+        setCurrentViewId={this.setCurrentViewId}
+        currentView={currentView}
+      />
     )
   }
 
@@ -444,20 +498,21 @@ export default class ContactApp extends React.Component {
     const { currentView = '' } = this.state
     if (currentView != 'default') {
       const updates = {}
-      updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
-      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
+      updates[`/views/${CONFIG.TABLE_KEY}/allViews/${currentView}` ] = null
+      this.setCurrentViewId('default')
       return firebase.ref().update(updates)
     }
   }
+
   render() {
     const { currentView = '' } = this.state
     const show_delete_view = currentView !== 'default';
     const is_long_list = this.isLongList()
     return (
       <div>
-        <Header tab={TABLE_KEY}/>
+        <Header tab={CONFIG.TABLE_KEY}/>
         {this.getViewsDropdown()}
-        <span className='table_header'>Contacts</span>
+        <span className='table_header'>{CONFIG.TABLE_HEADER}</span>
         <button className='pull-right btn btn-default mb10 mr15' onClick={this.deleteSelected}> Delete Selected </button>
         { show_delete_view && <button className='pull-right btn btn-default mb10 mr10' onClick={this.deleteView}> Delete View </button>}
         { is_long_list && <button className='pull-right btn btn-default mb10 mr10' onClick={this.onClickAddRow}> Add Row </button>}

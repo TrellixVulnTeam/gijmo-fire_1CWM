@@ -14,6 +14,18 @@ import { CollectionView, Control, hidePopup, hasClass, showPopup, format, Proper
 
 const TABLE_KEY = 'tracks'
 
+const getCurrentViewKey = () => {
+  return 'state_' + TABLE_KEY
+}
+
+const getCurrentView = () => {
+  const view = window.localStorage.getItem(getCurrentViewKey())
+  if (!view) {
+    window.localStorage.setItem(getCurrentViewKey(), 'default')
+  }
+  return view ? view : 'default'
+}
+
 export default class Panel extends React.Component {
 
   constructor(props) {
@@ -40,10 +52,13 @@ export default class Panel extends React.Component {
     this.setupTableStateListener = this.setupTableStateListener.bind(this)
     this.saveStatePromise = this.saveStatePromise.bind(this)
     this.deleteView = this.deleteView.bind(this)
+    this.setCurrentViewId = this.setCurrentViewId.bind(this)
+    this.getViewsDropdown = this.getViewsDropdown.bind(this)
     // get initial state
     this.state = {
       events: [],
       view: null,
+      currentView: getCurrentView(),
       events_dropdown: null,
       songs_dropdown: null,
       new_mongid: mongoObjectId()
@@ -76,6 +91,17 @@ export default class Panel extends React.Component {
     }
   }
 
+  setCurrentViewId(currentView = 'default') {
+    const {allViews = {}} =  this.state
+    window.localStorage.setItem(getCurrentViewKey(), currentView)
+    this.setState({
+      currentView,
+      viewState: allViews[currentView]['state']
+    }, () => {
+      this.retrieveState()
+    })
+  }
+
   onScroll(event) {
     const top = this.scrollY;
     localStorage.setItem('pos', top);
@@ -85,14 +111,15 @@ export default class Panel extends React.Component {
     this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
-      const { allViews = {}, currentView = '' } = views_data ? views_data : {}
+      const { allViews = {} } = views_data ? views_data : {}
+      let { currentView } = this.state
       this.setState({
-        currentView,
-        viewState: allViews[currentView]['state']
+        allViews
       }, () => {
-        this.retrieveState()
+        this.setCurrentViewId(currentView)
       })
     })
+
     if ('onbeforeunload' in window) {
       window.onbeforeunload = this.saveState
     }
@@ -330,9 +357,9 @@ export default class Panel extends React.Component {
   getTableState() {
     const { flex, filter } = this.state
     if (flex && filter) {
-      const { columnLayout = {} } = this.state.flex
+      const { columnLayout = {}, collectionView = {} } = this.state.flex
       const { filterDefinition = {} } = this.state.filter
-      const { sortDescriptions = {} } = this.state.flex.collectionView
+      const { sortDescriptions = {} } = collectionView
       const { groupDescriptions = {} } = this.getGroupDescriptions()
       return {
         columnLayout,
@@ -379,8 +406,10 @@ export default class Panel extends React.Component {
 
   retrieveState() {
     const { viewState = '' } = this.state
+    // const viewState = localStorage.getItem(CONFIG.getCurrentViewKey())
     if (viewState) {
-      const table_state = JSON.parse(viewState)
+      let table_state = JSON.parse(viewState)
+      table_state = table_state ? table_state : {}
       const { columnLayout, filterDefinition, sortDescriptions, groupDescriptions } = table_state
       this.applyColumnLayout(columnLayout)
       this.applyFilters(filterDefinition)
@@ -462,6 +491,7 @@ export default class Panel extends React.Component {
           ]}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
+          onRefreshed={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}
@@ -472,9 +502,16 @@ export default class Panel extends React.Component {
       </div>
     )
   }
+
   getViewsDropdown() {
+    const { currentView = 'default' } = this.state
     return (
-      <ViewsDropdown table={TABLE_KEY} saveState={this.saveStatePromise}/>
+      <ViewsDropdown
+        table={TABLE_KEY}
+        saveState={this.saveStatePromise}
+        setCurrentViewId={this.setCurrentViewId}
+        currentView={currentView}
+      />
     )
   }
 
@@ -483,7 +520,7 @@ export default class Panel extends React.Component {
     if (currentView != 'default') {
       const updates = {}
       updates[`/views/${TABLE_KEY}/allViews/${currentView}` ] = null
-      updates[`/views/${TABLE_KEY}/currentView` ] = 'default'
+      this.setCurrentViewId('default')
       return firebase.ref().update(updates)
     }
   }
