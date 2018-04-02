@@ -52,6 +52,7 @@ export default class Panel extends React.Component {
     this.deleteView = this.deleteView.bind(this)
     this.getViewsDropdown = this.getViewsDropdown.bind(this)
     this.setCurrentViewId = this.setCurrentViewId.bind(this)
+    this.setupDropdowns = this.setupDropdowns.bind(this)
     // get initial state
     this.state = {
       [TABLE_KEY]: [],
@@ -84,6 +85,7 @@ export default class Panel extends React.Component {
   }
 
   setupDropdowns() {
+    const { view } = this.state
     const dropdown_keys = ['type'];
     dropdown_keys.forEach((keyname) => {
       const dropdown_items = this.getVenueTypes();
@@ -98,6 +100,9 @@ export default class Panel extends React.Component {
         })
       }
     })
+    if (view) {
+      view.refresh()
+    }
   }
   getProcessedVenues(venues_obj) {
     return Object.keys(venues_obj).map((key) => {
@@ -120,13 +125,11 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    let { currentView } = this.state
-    currentView = currentView ? currentView : 'default'
     this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
-
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {} } = views_data ? views_data : {}
+      let { currentView } = this.state
       this.setState({
         allViews
       }, () => {
@@ -353,11 +356,13 @@ export default class Panel extends React.Component {
 
   saveStatePromise() {
     const table_state = this.getTableState()
-    const { currentView = '' } = this.state
+    const { currentView = '', flex } = this.state
     if (currentView) {
       const updates = {}
       updates[`/views/${TABLE_KEY}/allViews/${currentView}/state` ] = JSON.stringify(table_state)
-      return firebase.ref().update(updates).then(() => Promise.resolve(table_state))
+      return firebase.ref().update(updates).then(() => {
+        return Promise.resolve(table_state)
+      })
     }
     return Promise.resolve()
   }
@@ -445,6 +450,7 @@ export default class Panel extends React.Component {
           ]}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
+          onRefreshed={this.saveState}
           showDropDown={true}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }

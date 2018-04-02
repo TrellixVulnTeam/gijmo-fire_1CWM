@@ -76,17 +76,6 @@ export default class Panel extends React.Component {
     })
   }
 
-  setCurrentViewId(currentView = 'default') {
-    const {allViews = {}} =  this.state
-    window.localStorage.setItem(getCurrentViewKey(), currentView)
-    this.setState({
-      currentView,
-      viewState: allViews[currentView]['state']
-    }, () => {
-      this.retrieveState()
-    })
-  }
-
   getProcessedDropDownItem(item_list) {
     return Object.keys(item_list).map((id) => {
       const { name = '' } = item_list[id]
@@ -138,9 +127,9 @@ export default class Panel extends React.Component {
   getTableState() {
     const { flex, filter } = this.state
     if (flex && filter) {
-      const { columnLayout = {} } = this.state.flex
+      const { columnLayout = {}, collectionView = {} } = this.state.flex
       const { filterDefinition = {} } = this.state.filter
-      const { sortDescriptions = {} } = this.state.flex.collectionView
+      const { sortDescriptions = {} } = collectionView
       const { groupDescriptions = {} } = this.getGroupDescriptions()
       return {
         columnLayout,
@@ -249,14 +238,23 @@ export default class Panel extends React.Component {
     localStorage.setItem('pos', top);
   }
 
-  setupTableStateListener() {
-    let { currentView } = this.state
-    currentView = currentView ? currentView : 'default'
-    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
+  setCurrentViewId(currentView) {
+    const {allViews = {}} =  this.state
+    window.localStorage.setItem(getCurrentViewKey(), currentView)
+    this.setState({
+      currentView,
+      viewState: allViews[currentView]['state']
+    }, () => {
+      this.retrieveState()
+    })
+  }
 
+  setupTableStateListener() {
+    this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {} } = views_data ? views_data : {}
+      let { currentView } = this.state
       this.setState({
         allViews
       }, () => {
@@ -500,6 +498,7 @@ export default class Panel extends React.Component {
           ]}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
+          onRefreshed={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}

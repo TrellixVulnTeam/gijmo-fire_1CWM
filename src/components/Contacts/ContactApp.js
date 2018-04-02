@@ -86,6 +86,7 @@ export default class ContactApp extends React.Component {
     this.saveStatePromise = this.saveStatePromise.bind(this)
     this.deleteView = this.deleteView.bind(this)
     this.setCurrentViewId = this.setCurrentViewId.bind(this)
+    this.setupDropdowns = this.setupDropdowns.bind(this)
     // get initial state
     this.state = {
       [CONFIG.TABLE_KEY]: [],
@@ -105,11 +106,13 @@ export default class ContactApp extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const { flex } = this.state
     this.retrieveState()
     this.setupDropdowns()
   }
 
   setupDropdowns() {
+    const { view } = this.state
     const dropdown_config = CONFIG.DROPDOWN;
     dropdown_config.forEach((config) => {
       const dropdown_items = config.data
@@ -124,6 +127,9 @@ export default class ContactApp extends React.Component {
         })
       }
     })
+    if (view) {
+      view.refresh()
+    }
   }
 
   setCurrentViewId(currentView = 'default') {
@@ -138,12 +144,10 @@ export default class ContactApp extends React.Component {
   }
 
   setupTableStateListener() {
-    let { currentView } = this.state
-    currentView = currentView ? currentView : 'default'
     this.views_ref = firebase.ref().child('views').child(CONFIG.TABLE_KEY);
-
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
+      let { currentView } = this.state
       const { allViews = {} } = views_data ? views_data : {}
       this.setState({
         allViews
@@ -347,9 +351,9 @@ export default class ContactApp extends React.Component {
   getTableState() {
     const { flex, filter } = this.state
     if (flex && filter) {
-      const { columnLayout = {} } = this.state.flex
+      const { columnLayout = {}, collectionView = {} } = this.state.flex
       const { filterDefinition = {} } = this.state.filter
-      const { sortDescriptions = {} } = this.state.flex.collectionView
+      const { sortDescriptions = {} } = collectionView
       const { groupDescriptions = {} } = this.getGroupDescriptions()
       return {
         columnLayout,
@@ -466,6 +470,7 @@ export default class ContactApp extends React.Component {
           columns={CONFIG.COLUMNS}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
+          onRefreshed={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}

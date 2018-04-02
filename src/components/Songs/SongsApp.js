@@ -101,13 +101,11 @@ export default class Panel extends React.Component {
   }
 
   setupTableStateListener() {
-    let { currentView } = this.state
-    currentView = currentView ? currentView : 'default'
     this.views_ref = firebase.ref().child('views').child(TABLE_KEY);
-
     this.views_ref.on('value', (snapshot) => {
       const views_data = snapshot.val();
       const { allViews = {} } = views_data ? views_data : {}
+      let { currentView } = this.state
       this.setState({
         allViews
       }, () => {
@@ -424,6 +422,7 @@ export default class Panel extends React.Component {
           ]}
           cellEditEnded={this.onCellEditEnded}
           cellEditEnding={this.saveState}
+          onRefreshed={this.saveState}
           itemsSource={this.state.view}
           initialized={ this.onInitialized }
           allowAddNew={true}
@@ -436,7 +435,7 @@ export default class Panel extends React.Component {
   }
 
   getViewsDropdown() {
-    const { currentView = 'default' } = this.state
+    const { currentView } = this.state
     return (
       <ViewsDropdown
         table={TABLE_KEY}
