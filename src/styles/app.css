@@ -94,3 +94,11 @@
 .list-group-item:hover {
   background-color: #f4f4f4
 }
+
+#add-column-popover-views {
+  left: -10px !important
+}
+
+#add-column-popover-views .list-group-wrapper ul {
+  margin-bottom: 0;
+}
